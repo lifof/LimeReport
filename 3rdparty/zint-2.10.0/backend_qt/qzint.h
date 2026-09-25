@@ -18,6 +18,7 @@
 
 #ifndef BARCODERENDER_H
 #define BARCODERENDER_H
+#include <QObject>
 #include <QColor>
 #include <QPainter>
 

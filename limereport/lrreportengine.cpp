@@ -85,6 +85,7 @@ ReportEnginePrivate::ReportEnginePrivate(QObject *parent) :
     initResources();
     initReportItems();
     initSerializators();
+    registerQmlTypes();
 #endif
     m_datasources = new DataSourceManager(this);
     m_datasources->setReportSettings(&m_reportSettings);

@@ -12,11 +12,27 @@
 #include "lrquickpreview.h"
 #include "lrquickdesigner.h"
 
+extern void qml_register_types_LimeReport();
+
 namespace LimeReport {
+
+void registerQmlTypes()
+{
+    static bool registered = false;
+    if (registered) return;
+    registered = true;
+#ifdef HAVE_STATIC_BUILD
+    // In static builds nothing references the generated registration unit,
+    // so the linker would drop it: register explicitly.
+    qml_register_types_LimeReport();
+#endif
+}
+
 namespace QuickWindows {
 
 static QQmlEngine* sharedEngine()
 {
+    registerQmlTypes();
     static QPointer<QQmlEngine> engine;
     if (!engine) {
         engine = new QQmlEngine(QCoreApplication::instance());

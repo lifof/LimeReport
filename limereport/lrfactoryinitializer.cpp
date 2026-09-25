@@ -19,26 +19,9 @@
 #include "lrdesignelementsfactory.h"
 #ifdef HAVE_SVG
 #include "items/lrsvgitem.h"
-#include "objectinspector/propertyItems/lrsvgpropitem.h"
 #endif
 
 
-#include "objectinspector/lrobjectpropitem.h"
-#include "objectinspector/propertyItems/lrboolpropitem.h"
-#include "objectinspector/propertyItems/lrcolorpropitem.h"
-#include "objectinspector/propertyItems/lrcontentpropitem.h"
-#include "objectinspector/propertyItems/lrdatasourcepropitem.h"
-#include "objectinspector/propertyItems/lrenumpropitem.h"
-#include "objectinspector/propertyItems/lrflagspropitem.h"
-#include "objectinspector/propertyItems/lrfontpropitem.h"
-#include "objectinspector/propertyItems/lrgroupfieldpropitem.h"
-#include "objectinspector/propertyItems/lrimagepropitem.h"
-#include "objectinspector/propertyItems/lrintpropitem.h"
-#include "objectinspector/propertyItems/lrqrealpropitem.h"
-#include "objectinspector/propertyItems/lrrectproptem.h"
-#include "objectinspector/propertyItems/lrstringpropitem.h"
-#include "items/lralignpropitem.h"
-#include "items/lrsubitemparentpropitem.h"
 
 #include "serializators/lrxmlbasetypesserializators.h"
 #include "serializators/lrxmlqrectserializator.h"
@@ -50,12 +33,7 @@
 
 void initResources(){
     Q_INIT_RESOURCE(report);
-    Q_INIT_RESOURCE(lobjectinspector);
-    Q_INIT_RESOURCE(lrdatabrowser);
     Q_INIT_RESOURCE(items);
-    Q_INIT_RESOURCE(lrscriptbrowser);
-    Q_INIT_RESOURCE(translationeditor);
-    Q_INIT_RESOURCE(dialogdesigner);
 }
 
 namespace LimeReport{
@@ -233,187 +211,6 @@ void initReportItems(){
 }
 
 
-ObjectPropItem * createBoolPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::BoolPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createColorPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new ColorPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createContentPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new ContentPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createDatasourcePropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::DatasourcePropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem* createFieldPropItem(QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly){
-    return new LimeReport::FieldPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createEnumPropItem(
-        QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::EnumPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createFlagsPropItem(
-        QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::FlagsPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createFontPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::FontPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem* createGroupFieldPropItem(QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly){
-    return new LimeReport::GroupFieldPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createImagePropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::ImagePropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-#ifdef HAVE_SVG
-ObjectPropItem * createSVGPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::SvgPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-#endif
-
-ObjectPropItem * createIntPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::IntPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createQRealPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::QRealPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createReqtItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly
-){
-    return new LimeReport::RectPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createReqtMMItem(
-    QObject*object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly
-){
-    return new LimeReport::RectUnitPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createStringPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::StringPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createAlignItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly
-){
-    return new LimeReport::AlignmentPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-ObjectPropItem * createLocationPropItem(
-    QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
-{
-    return new LimeReport::ItemLocationPropItem(object, objects, name, displayName, data, parent, readonly);
-}
-
-void initObjectInspectorProperties()
-{
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("bool",""),QObject::tr("bool"),createBoolPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("QColor",""),QObject::tr("QColor"),createColorPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("content","LimeReport::TextItem"),QObject::tr("content"),createContentPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("datasource","LimeReport::DataBandDesignIntf"),QObject::tr("datasource"),createDatasourcePropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-        LimeReport::APropIdent("datasource","LimeReport::ImageItem"),QObject::tr("datasource"),createDatasourcePropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-            LimeReport::APropIdent("field","LimeReport::ImageItem"),QObject::tr("field"),createFieldPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-        LimeReport::APropIdent("datasource","LimeReport::SVGItem"),QObject::tr("datasource"),createDatasourcePropItem
-        );
-    ObjectPropFactory::instance().registerCreator(
-        LimeReport::APropIdent("field","LimeReport::SVGItem"),QObject::tr("field"),createFieldPropItem
-        );
-    ObjectPropFactory::instance().registerCreator(
-        LimeReport::APropIdent("enum",""),QObject::tr("enum"),createEnumPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-        LimeReport::APropIdent("flags",""),QObject::tr("flags"),createFlagsPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("QFont",""),QObject::tr("QFont"),createFontPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-        LimeReport::APropIdent("groupFieldName","LimeReport::GroupBandHeader"),QObject::tr("field"),createGroupFieldPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("QImage",""),QObject::tr("QImage"),createImagePropItem
-    );
-#ifdef HAVE_SVG
-    ObjectPropFactory::instance().registerCreator(
-        LimeReport::APropIdent("image","LimeReport::SVGItem"),QObject::tr("image"),createSVGPropItem
-    );
-#endif
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("int",""),QObject::tr("int"),createIntPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("qreal",""),QObject::tr("qreal"),createQRealPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("double",""),QObject::tr("qreal"),createQRealPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("QRect",""),QObject::tr("QRect"),createReqtItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("QRectF",""),QObject::tr("QRectF"),createReqtItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("geometry","LimeReport::BaseDesignIntf"),QObject::tr("geometry"),createReqtMMItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("QString",""),QObject::tr("QString"),createStringPropItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-                LimeReport::APropIdent("alignment","LimeReport::TextItem"),QObject::tr("alignment"),createAlignItem
-    );
-    ObjectPropFactory::instance().registerCreator(
-        LimeReport::APropIdent("itemLocation","LimeReport::ItemDesignIntf"),QObject::tr("itemLocation"),createLocationPropItem
-    );
-
-}
 SerializatorIntf * createIntSerializator(QDomDocument *doc, QDomElement *node){
     return new LimeReport::XmlIntSerializator(doc,node);
 }

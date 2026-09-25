@@ -1,42 +1,20 @@
-/***************************************************************************
- *   This file is part of the Lime Report project                          *
- *   Copyright (C) 2021 by Alexander Arin                                  *
- *   arin_a@bk.ru                                                          *
- *                                                                         *
- **                   GNU General Public License Usage                    **
- *                                                                         *
- *   This library is free software: you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation, either version 3 of the License, or     *
- *   (at your option) any later version.                                   *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
- *                                                                         *
- **                  GNU Lesser General Public License                    **
- *                                                                         *
- *   This library is free software: you can redistribute it and/or modify  *
- *   it under the terms of the GNU Lesser General Public License as        *
- *   published by the Free Software Foundation, either version 3 of the    *
- *   License, or (at your option) any later version.                       *
- *   You should have received a copy of the GNU Lesser General Public      *
- *   License along with this library.                                      *
- *   If not, see <http://www.gnu.org/licenses/>.                           *
- *                                                                         *
- *   This library is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- ****************************************************************************/
-#include "mainwindow.h"
-#include <QApplication>
-
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQuickStyle>
+#include <QIcon>
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.setWindowIcon(QIcon(":/images/main_ico"));
-    w.show();
+    QGuiApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/images/main_ico"));
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE"))
+        QQuickStyle::setStyle("Fusion");
 
-    return a.exec();
+    QQmlApplicationEngine engine;
+    // Qt 6.4 does not add the resource import path by default.
+    engine.addImportPath("qrc:/qt/qml");
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
+                     &app, []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
+    engine.load(QUrl(QStringLiteral("qrc:/qt/qml/DemoR1/Main.qml")));
+    return app.exec();
 }

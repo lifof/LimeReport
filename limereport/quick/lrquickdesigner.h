@@ -179,6 +179,7 @@ signals:
 private slots:
     void onEngineDestroyed();
     void onReportLoaded();
+    void onReportCleared();
     void onPageSelectionChanged();
     void onHistoryChanged();
     void onItemInserted();

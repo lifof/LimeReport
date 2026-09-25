@@ -1,23 +1,21 @@
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
+qt_add_executable(demo_r1 main.cpp demobackend.h demobackend.cpp r1.qrc)
+if (WIN32)
+    target_sources(demo_r1 PRIVATE mainicon.rc)
+endif()
 
-set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
+qt_add_qml_module(demo_r1
+    URI DemoR1
+    VERSION 1.0
+    RESOURCE_PREFIX /qt/qml
+    QML_FILES Main.qml
 )
 
-add_executable(demo_r1 main.cpp ${PROJECT_SOURCES})
-
-target_include_directories( demo_r1 PRIVATE ../include/ )
+target_compile_definitions(demo_r1 PRIVATE DEMO_REPORTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/demo_reports")
 target_link_libraries(demo_r1 PRIVATE
-        Qt${QT_VERSION_MAJOR}::Core
-        Qt${QT_VERSION_MAJOR}::Widgets
-        Qt${QT_VERSION_MAJOR}::PrintSupport
-        Qt${QT_VERSION_MAJOR}::Qml
-        Qt${QT_VERSION_MAJOR}::Sql
-        ${PROJECT_NAME}-qt${QT_VERSION_MAJOR}
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Quick
+    Qt6::QuickControls2
+    Qt6::Sql
+    LimeReport::LimeReport
 )
-

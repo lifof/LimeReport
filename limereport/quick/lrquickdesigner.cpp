@@ -63,7 +63,7 @@ void QuickReportDesigner::setEngineObject(QObject* engineObject)
     if (m_engine) {
         connect(m_engine, &QObject::destroyed, this, &QuickReportDesigner::onEngineDestroyed);
         connect(d(), &ReportEnginePrivate::loadFinished, this, &QuickReportDesigner::onReportLoaded);
-        connect(d(), &ReportEnginePrivate::cleared, this, &QuickReportDesigner::onReportLoaded);
+        connect(d(), &ReportEnginePrivate::cleared, this, &QuickReportDesigner::onReportCleared);
         connect(d(), &ReportEnginePrivate::saveFinished, this, &QuickReportDesigner::reportChanged);
         connect(d(), &ReportEnginePrivate::saveFinished, this, &QuickReportDesigner::modifiedChanged);
         d()->dataManager()->setDesignTime(true);
@@ -112,6 +112,17 @@ void QuickReportDesigner::connectPage(PageDesignIntf* page)
     connect(page, &PageDesignIntf::itemPropertyObjectNameChanged, this, &QuickReportDesigner::pagesChanged);
     page->setMagneticMovement(m_magneticMovement);
     page->clearSelection();
+}
+
+void QuickReportDesigner::onReportCleared()
+{
+    // Pages are gone (a report is being loaded or a new one started);
+    // onReportLoaded() rebuilds everything once the new content is there.
+    m_currentPageIndex = -1;
+    m_propertyModel->setObjects(QList<QObject*>());
+    m_objectTreeModel->setPage(nullptr);
+    emit currentPageChanged();
+    emit pagesChanged();
 }
 
 void QuickReportDesigner::onReportLoaded()

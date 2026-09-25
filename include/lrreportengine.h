@@ -48,6 +48,10 @@ namespace LimeReport {
 
 class GraphicsScene;
 
+// Registers the "LimeReport" QML module. Only needed with a static build of
+// the library before using the QML types without creating a ReportEngine.
+LIMEREPORT_EXPORT void registerQmlTypes();
+
 class LIMEREPORT_EXPORT PrintRange{
 public:
     enum RangeType { AllPages, PageRange };
