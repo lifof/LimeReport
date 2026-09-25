@@ -482,7 +482,7 @@ protected:
 
 private:
     friend class GraphicsItem;
-    void itemDestroyed(GraphicsItem* item);
+    void itemDestroyed(GraphicsItem* item, bool wasSelected);
     void itemSelectionChanged();
     void collectItems(GraphicsItem* item, QList<GraphicsItem*>& list) const;
     void collectItemsAt(GraphicsItem* item, const QPointF& scenePos, const QPainterPath* clip,

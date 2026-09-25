@@ -144,20 +144,24 @@ GraphicsItem::GraphicsItem(GraphicsItem* parent)
 
 GraphicsItem::~GraphicsItem()
 {
-    if (m_scene) m_scene->itemDestroyed(this);
+    GraphicsScene* scene = m_scene;
+    bool wasSelected = m_selected;
+    m_selected = false;
+    // Detach first: the derived parts of this object are already destroyed,
+    // so nothing may reach it through the tree while notifications are sent.
+    if (m_parent) {
+        m_parent->m_children.removeAll(this);
+        m_parent = nullptr;
+    } else if (scene) {
+        scene->m_topLevelItems.removeAll(this);
+    }
     while (!m_children.isEmpty()) {
         GraphicsItem* child = m_children.takeFirst();
         child->m_parent = nullptr;
         delete child;
     }
-    if (m_parent) {
-        m_parent->m_children.removeAll(this);
-        m_parent = nullptr;
-    }
-    if (m_scene) {
-        m_scene->m_topLevelItems.removeAll(this);
-        m_scene = nullptr;
-    }
+    m_scene = nullptr;
+    if (scene) scene->itemDestroyed(this, wasSelected);
 }
 
 QPainterPath GraphicsItem::shape() const
@@ -204,11 +208,9 @@ void GraphicsItem::setSceneRecursive(GraphicsScene* scene)
     Q_UNUSED(v)
     if (m_scene) {
         GraphicsScene* old = m_scene;
-        if (m_selected) {
-            m_selected = false;
-            old->itemSelectionChanged();
-        }
-        old->itemDestroyed(this);
+        bool wasSelected = m_selected;
+        m_selected = false;
+        old->itemDestroyed(this, wasSelected);
     }
     m_scene = scene;
     foreach (GraphicsItem* child, m_children) child->setSceneRecursive(scene);
@@ -643,7 +645,7 @@ GraphicsRectItem* GraphicsScene::addRect(qreal x, qreal y, qreal w, qreal h, con
     return item;
 }
 
-void GraphicsScene::itemDestroyed(GraphicsItem* item)
+void GraphicsScene::itemDestroyed(GraphicsItem* item, bool wasSelected)
 {
     m_hoverItems.removeAll(item);
     if (m_mouseGrabber == item) m_mouseGrabber = nullptr;
@@ -651,7 +653,7 @@ void GraphicsScene::itemDestroyed(GraphicsItem* item)
     if (m_focusItem == item) m_focusItem = nullptr;
     if (m_dragOverItem == item) m_dragOverItem = nullptr;
     m_movingItemsInitialPositions.remove(item);
-    if (item->m_selected) itemSelectionChanged();
+    if (wasSelected) itemSelectionChanged();
     update();
 }
 

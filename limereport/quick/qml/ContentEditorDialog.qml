@@ -21,6 +21,7 @@ Dialog {
             Layout.fillWidth: true
             Layout.fillHeight: true
             TextArea {
+                background: Rectangle { color: palette.base; border.color: palette.mid }
                 id: area
                 font.family: "monospace"
                 wrapMode: TextEdit.NoWrap

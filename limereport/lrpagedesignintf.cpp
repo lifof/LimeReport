@@ -677,23 +677,6 @@ bool PageDesignIntf::isExistsObjectName(const QString &objectName, QList<Graphic
     return false;
 }
 
-//QRectF PageDesignIntf::getRectByPageSize(PageDesignIntf::PageSize pageSize)
-//{
-//    if (m_pageSize != PageSize::Custom) {
-//        QPrinter printer;
-//        printer.setOutputFormat(QPrinter::PdfFormat);
-//        printer.setOrientation((QPrinter::Orientation)getOrientation());
-//        printer.setPageSize((QPrinter::PageSize)pageSize);
-//        return QRectF(0, 0, printer.paperRect(QPrinter::Millimeter).width() * 10,
-//                      printer.paperSize(QPrinter::Millimeter).height() * 10);
-//    }
-
-//    else {
-//        return QRectF(0, 0, m_pageSizeValue.width() * 10,
-//                      m_pageSizeValue.height() * 10);
-//    }
-//}
-
 bool PageDesignIntf::isLoading()
 {
     return m_isLoading;

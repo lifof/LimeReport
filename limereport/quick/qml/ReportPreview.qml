@@ -212,6 +212,7 @@ Item {
             orientation: Qt.Vertical
 
             Item {
+                id: viewArea
                 SplitView.fillHeight: true
                 ReportSceneView {
                     id: view
@@ -237,7 +238,7 @@ Item {
                     anchors.top: parent.top
                     anchors.bottom: hbar.top
                     orientation: Qt.Vertical
-                    policy: view.contentHeight > view.height ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                    policy: view.contentHeight > viewArea.height - 14 ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
                     size: view.contentHeight > 0 ? view.height / view.contentHeight : 1
                     position: view.contentHeight > 0 ? view.contentY / view.contentHeight : 0
                     onPositionChanged: if (pressed) view.contentY = position * view.contentHeight
@@ -249,7 +250,7 @@ Item {
                     anchors.right: vbar.left
                     anchors.bottom: parent.bottom
                     orientation: Qt.Horizontal
-                    policy: view.contentWidth > view.width ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+                    policy: view.contentWidth > viewArea.width - 14 ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
                     size: view.contentWidth > 0 ? view.width / view.contentWidth : 1
                     position: view.contentWidth > 0 ? view.contentX / view.contentWidth : 0
                     onPositionChanged: if (pressed) view.contentX = position * view.contentWidth

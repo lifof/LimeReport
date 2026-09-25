@@ -76,13 +76,15 @@ Dialog {
             Layout.fillWidth: true
             Layout.fillHeight: true
             visible: dialog.type !== "csv"
-            TextArea { id: sqlArea; font.family: "monospace"; placeholderText: "SELECT * FROM ..."; selectByMouse: true }
+            TextArea { id: sqlArea; background: Rectangle { color: palette.base; border.color: palette.mid }
+                       font.family: "monospace"; placeholderText: "SELECT * FROM ..."; selectByMouse: true }
         }
         ScrollView {
             Layout.fillWidth: true
             Layout.fillHeight: true
             visible: dialog.type === "csv"
-            TextArea { id: csvArea; font.family: "monospace"; selectByMouse: true }
+            TextArea { id: csvArea; background: Rectangle { color: palette.base; border.color: palette.mid }
+                       font.family: "monospace"; selectByMouse: true }
         }
         Label {
             Layout.fillWidth: true

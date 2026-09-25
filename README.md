@@ -6,41 +6,114 @@
 ## Features
 
 * Multi-platform support
-* Pure Qt4/Qt5 compatible code
-* Embedded report designer
-* Embedded preview
+* Pure Qt 6 Qt Quick code: no QtWidgets, no QtPrintSupport
+* Embedded report designer and preview built with QtQuick.Controls
 * Various band types for a report of any complexity
 * Page header and footer
 * Data grouping (GroupHeader, GroupFooter, Subdetail, SubdetailHeader, SubdetailFooter)
 * Aggregation functions (SUM, COUNT, AVG, MIN, MAX)
-* Report elements: Text, Geometric (Line, Ellipsis, Rectangle), Picture
-* Horizontal elements groups
+* Report elements: Text, Geometric (Line, Ellipsis, Rectangle), Picture, SVG, Chart, Barcode
+* Horizontal and vertical element groups
 * HTML to format input fields
 * Scripts to format output data
 * An Automatic band height adjustment
 * A Smart band split moving data to the next page
-* PDF output
+* PDF output (QPdfWriter) and rendering to images
+
+### Qt Quick edition
+
+This branch runs entirely on Qt Quick. The QtWidgets designer and preview have
+been replaced by a QML module (`import LimeReport`) built with QtQuick.Controls:
+
+* The report engine no longer depends on QGraphicsScene: items are drawn by a
+  small QtGui-only scene graph (`limereport/lrgraphicsscene.h`), so reports can
+  be rendered headless or inside any Qt Quick scene.
+* `ReportPreview` / `ReportPreviewController`: page navigation, zoom, edit mode,
+  PDF and exporter output, saving and loading prepared pages.
+* `ReportDesigner` / `ReportDesignerController`: pages, bands, item insertion,
+  undo/redo, clipboard, alignment, layouts, fonts, borders, script editor,
+  object tree, data browser (connections, SQL/CSV datasources, variables with
+  drag and drop onto the page) and a property inspector.
+* `ReportSceneView`: a `QQuickPaintedItem` that displays a report scene.
+* `ReportEngine` can be created from QML; engine messages are available through
+  the `ReportMessages` singleton.
+
+Requirements: Qt 6.4 or later with the Core, Gui, Qml, Quick, QuickControls2,
+Sql, Xml and Svg modules, and CMake 3.16 or later.
+
+Not carried over from the widget edition: printing through QPrinter and the
+print dialog (`printReport()` renders a PDF and hands it to the platform viewer),
+the Qt Designer plugin, the embedded dialog designer (report dialogs built from
+`.ui` files), the translation editor and the chart series editor dialog (chart
+properties are still available in the property inspector). The qmake project
+files are gone; the library is built with CMake.
+
+### How to build
+
+```sh
+cmake -S . -B build -DENABLE_ZINT=ON
+cmake --build build
+ctest --test-dir build   # runs offscreen
+```
+
+Options: `LIMEREPORT_STATIC`, `ENABLE_ZINT`, `LIMEREPORT_BUILD_DESIGNER`,
+`LIMEREPORT_BUILD_DEMO`, `LIMEREPORT_BUILD_TESTS`.
 
 ### How to use it
 
-1. Build limereport.pro. It will create a limereport shared library  
-2. In your project connect the limereport library then in source code add:
+From C++ (a `QGuiApplication` is enough):
 
 ```cpp
-  #include "lrreportengine.h" to add report engine
-  #include "lrcallbackdatasourceintf.h" if you want use callback datasources
+  #include <LimeReport>              // report engine
+  #include <LRCallbackDS>            // if you want use callback datasources
 
-  report = new LimeReport::ReportEngine(this); to create reportengine
-  report->dataManager()->addModel("string_list",stringListModel,true); to add datasource to report engine
-  report->loadFromFile("File name"); to load report template file
-  report->previewReport(); to generate report and preview
-  report->printReport(); to print report
-
+  report = new LimeReport::ReportEngine(this);
+  report->dataManager()->addModel("string_list", stringListModel, true);
+  report->loadFromFile("File name");
+  report->previewReport();           // Qt Quick preview window
+  report->designReport();            // Qt Quick designer window
+  report->printToPDF("report.pdf");
+  QList<QImage> pages = report->renderToImages(150);
 ```
 
-For more samples see a demo
+From QML (link the application against the library; with Qt 6.4 add the
+`qrc:/qt/qml` import path to the QML engine):
+
+```qml
+import QtQuick
+import QtQuick.Controls
+import LimeReport
+
+ApplicationWindow {
+    visible: true
+    ReportEngine { id: engine }
+
+    // an embedded designer
+    ReportDesigner { anchors.fill: parent; engine: engine }
+
+    // or an embedded preview
+    // ReportPreview {
+    //     anchors.fill: parent
+    //     controller: ReportPreviewController { id: preview; engine: engine }
+    //     Component.onCompleted: if (engine.loadFromUrl(reportUrl)) preview.render()
+    // }
+}
+```
+
+With a static build call `LimeReport::registerQmlTypes()` before loading QML
+that uses the module if no `ReportEngine` has been created yet.
+
+For more samples see the demo (`demo_r1`).
 
 ### Change log
+
+#### 2.0.0
+
+1. The library runs on Qt Quick only: QtWidgets and QtPrintSupport are no longer used.
+2. New QtQuick.Controls report designer and preview (QML module `LimeReport`).
+3. QGraphicsScene replaced by a QtGui-only scene graph.
+4. PDF output uses QPdfWriter; `renderToImages()` added.
+5. Qt 6 and CMake are required.
 
 #### 1.5.0
 

@@ -128,6 +128,7 @@ Item {
             textRole: "text"
             valueRole: "value"
             currentIndex: {
+                if (!row.options) return -1
                 for (var i = 0; i < row.options.length; ++i)
                     if (row.options[i].value === row.value) return i
                 return -1
@@ -141,7 +142,7 @@ Item {
         ComboBox {
             model: row.options
             editable: true
-            currentIndex: row.options.indexOf(row.value)
+            currentIndex: row.options ? row.options.indexOf(row.value) : -1
             onActivated: function(index) { row.commit(row.options[index]) }
             onAccepted: row.commit(editText)
         }
