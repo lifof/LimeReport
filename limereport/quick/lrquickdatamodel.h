@@ -16,8 +16,7 @@ class BaseDesignIntf;
  * A tree flattened into a list model, so that it can be shown with a plain
  * QML ListView (indentation by "depth", expansion via toggle()).
  */
-class QuickTreeModel : public QAbstractListModel
-{
+class QuickTreeModel: public QAbstractListModel {
     Q_OBJECT
 public:
     enum Roles {
@@ -67,32 +66,34 @@ protected:
 
 private:
     void flatten(Node* node);
+
 private:
     Node* m_root;
     QList<Node*> m_rows;
     QSet<QString> m_collapsed;
     QSet<QString> m_expanded;
     bool m_defaultExpanded;
+
 protected:
     void setDefaultExpanded(bool value) { m_defaultExpanded = value; }
 };
 
-class QuickDataBrowserModel : public QuickTreeModel
-{
+class QuickDataBrowserModel: public QuickTreeModel {
     Q_OBJECT
     QML_NAMED_ELEMENT(ReportDataBrowserModel)
     QML_UNCREATABLE("Provided by ReportDesignerController")
 public:
     explicit QuickDataBrowserModel(QObject* parent = nullptr);
     void setDataManager(DataSourceManager* dataManager);
+
 protected:
     void build(Node* root) override;
+
 private:
     QPointer<DataSourceManager> m_dataManager;
 };
 
-class QuickObjectTreeModel : public QuickTreeModel
-{
+class QuickObjectTreeModel: public QuickTreeModel {
     Q_OBJECT
     QML_NAMED_ELEMENT(ReportObjectTreeModel)
     QML_UNCREATABLE("Provided by ReportDesignerController")
@@ -100,9 +101,11 @@ public:
     explicit QuickObjectTreeModel(QObject* parent = nullptr);
     void setPage(PageDesignIntf* page);
     Q_INVOKABLE void updateSelection() { refreshSelection(); }
+
 protected:
     void build(Node* root) override;
     bool isSelected(const Node* node) const override;
+
 private:
     void addItem(Node* parent, BaseDesignIntf* item);
     QPointer<PageDesignIntf> m_page;

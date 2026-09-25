@@ -1,10 +1,12 @@
 #ifndef LRQUICKWINDOWS_H
 #define LRQUICKWINDOWS_H
 
-#include <QObject>
-#include <functional>
 #include "lrglobal.h"
 #include "lrreportengine.h"
+
+#include <QObject>
+
+#include <functional>
 
 namespace LimeReport {
 
@@ -17,9 +19,10 @@ namespace QuickWindows {
     typedef std::function<void(QObject* window)> WindowCreated;
     QObject* showPreview(ReportEngine* engine, ReportPages pages, PreviewHints hints, bool modal,
                          WindowCreated onCreated = WindowCreated());
-    QObject* showDesigner(ReportEngine* engine, bool modal, WindowCreated onCreated = WindowCreated());
+    QObject* showDesigner(ReportEngine* engine, bool modal,
+                          WindowCreated onCreated = WindowCreated());
     void closeWindow(QObject* window);
-}
+} // namespace QuickWindows
 
 } // namespace LimeReport
 

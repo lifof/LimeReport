@@ -1,23 +1,22 @@
-#include <QtTest>
-#include <QSqlDatabase>
-#include <QTemporaryDir>
-#include <QQmlEngine>
-#include <QQmlComponent>
-#include <QQuickItem>
-
+#include "lrbanddesignintf.h"
+#include "lrpagedesignintf.h"
 #include "lrreportengine.h"
 #include "lrreportengine_p.h"
-#include "lrpagedesignintf.h"
-#include "lrbanddesignintf.h"
+#include "quick/lrquickdatamodel.h"
 #include "quick/lrquickdesigner.h"
 #include "quick/lrquickpreview.h"
 #include "quick/lrquickpropertymodel.h"
-#include "quick/lrquickdatamodel.h"
+
+#include <QQmlComponent>
+#include <QQmlEngine>
+#include <QQuickItem>
+#include <QSqlDatabase>
+#include <QTemporaryDir>
+#include <QtTest>
 
 using namespace LimeReport;
 
-class QuickTest : public QObject
-{
+class QuickTest: public QObject {
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
@@ -30,6 +29,7 @@ private Q_SLOTS:
     void previewController();
     void qmlComponents_data();
     void qmlComponents();
+
 private:
     QTemporaryDir m_dir;
 };
@@ -64,7 +64,8 @@ void QuickTest::renderDemoReports()
     int dark = 0;
     for (int y = 0; y < first.height(); y += 2)
         for (int x = 0; x < first.width(); x += 2)
-            if (qGray(first.pixel(x, y)) < 128) ++dark;
+            if (qGray(first.pixel(x, y)) < 128)
+                ++dark;
     QVERIFY(dark > 100);
 
     QString pdf = m_dir.filePath(report + ".pdf");
@@ -79,7 +80,8 @@ static int countItems(PageDesignIntf* page, const char* className)
 {
     int result = 0;
     for (BaseDesignIntf* item : page->pageItem()->allChildBaseItems())
-        if (item->inherits(className)) ++result;
+        if (item->inherits(className))
+            ++result;
     return result;
 }
 
@@ -139,7 +141,8 @@ void QuickTest::propertyModel()
     PageDesignIntf* page = designer.currentPage();
     designer.addBand(BandDesignIntf::Data);
     BandDesignIntf* band = page->pageItem()->bands().first();
-    BaseDesignIntf* text = page->addReportItem("TextItem", band->mapToScene(QPointF(10, 10)), QSizeF(300, 50));
+    BaseDesignIntf* text
+        = page->addReportItem("TextItem", band->mapToScene(QPointF(10, 10)), QSizeF(300, 50));
     QVERIFY(text);
     designer.selectObject(text);
 
@@ -148,7 +151,8 @@ void QuickTest::propertyModel()
     QCOMPARE(model->objectCount(), 1);
     int contentRow = model->rowOf("content");
     QVERIFY(contentRow >= 0);
-    QCOMPARE(model->data(model->index(contentRow), QuickPropertyModel::EditorRole).toString(), QString("text"));
+    QCOMPARE(model->data(model->index(contentRow), QuickPropertyModel::EditorRole).toString(),
+             QString("text"));
     QVERIFY(model->setValue(contentRow, "Hello"));
     QCOMPARE(text->property("content").toString(), QString("Hello"));
     designer.undo();
@@ -164,12 +168,14 @@ void QuickTest::propertyModel()
     QVERIFY(text->property("font").value<QFont>().bold());
 
     int enumRow = model->rowOf("backgroundMode");
-    QCOMPARE(model->data(model->index(enumRow), QuickPropertyModel::EditorRole).toString(), QString("enum"));
+    QCOMPARE(model->data(model->index(enumRow), QuickPropertyModel::EditorRole).toString(),
+             QString("enum"));
     QVERIFY(model->setValue(enumRow, 0));
     QCOMPARE(text->property("backgroundMode").toInt(), 0);
 
     int bordersRow = model->rowOf("borders");
-    QCOMPARE(model->data(model->index(bordersRow), QuickPropertyModel::EditorRole).toString(), QString("flags"));
+    QCOMPARE(model->data(model->index(bordersRow), QuickPropertyModel::EditorRole).toString(),
+             QString("flags"));
     QVERIFY(model->setFlag(bordersRow, 1, true));
     QVERIFY(text->property("borders").toInt() & 1);
 }
@@ -205,7 +211,8 @@ void QuickTest::dataBrowser()
     bool fieldFound = false;
     for (int i = 0; i < model->rowCount(); ++i) {
         QVariantMap row = model->get(i);
-        if (row.value("dragText").toString() == "field:$D{customers.CompanyName}") fieldFound = true;
+        if (row.value("dragText").toString() == "field:$D{customers.CompanyName}")
+            fieldFound = true;
     }
     QVERIFY(fieldFound);
 
@@ -263,12 +270,15 @@ void QuickTest::previewController()
 void QuickTest::qmlComponents_data()
 {
     QTest::addColumn<QString>("source");
-    QTest::newRow("designer") << "import QtQuick\nimport LimeReport\nItem { width: 1200; height: 800\n"
-                                 "  ReportEngine { id: engine }\n"
-                                 "  ReportDesigner { anchors.fill: parent; engine: engine } }";
-    QTest::newRow("preview") << "import QtQuick\nimport LimeReport\nItem { width: 800; height: 600\n"
-                                "  ReportEngine { id: engine }\n"
-                                "  ReportPreview { anchors.fill: parent; controller: ReportPreviewController { engine: engine } } }";
+    QTest::newRow("designer")
+        << "import QtQuick\nimport LimeReport\nItem { width: 1200; height: 800\n"
+           "  ReportEngine { id: engine }\n"
+           "  ReportDesigner { anchors.fill: parent; engine: engine } }";
+    QTest::newRow("preview")
+        << "import QtQuick\nimport LimeReport\nItem { width: 800; height: 600\n"
+           "  ReportEngine { id: engine }\n"
+           "  ReportPreview { anchors.fill: parent; controller: ReportPreviewController { engine: "
+           "engine } } }";
 }
 
 void QuickTest::qmlComponents()

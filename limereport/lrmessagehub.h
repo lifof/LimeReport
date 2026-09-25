@@ -1,9 +1,10 @@
 #ifndef LRMESSAGEHUB_H
 #define LRMESSAGEHUB_H
 
+#include "lrglobal.h"
+
 #include <QObject>
 #include <QString>
-#include "lrglobal.h"
 
 namespace LimeReport {
 
@@ -13,10 +14,14 @@ namespace LimeReport {
  * designer or preview) listens to messagePosted() and shows them.
  * Messages are also forwarded to the Qt message log.
  */
-class LIMEREPORT_EXPORT MessageHub : public QObject {
+class LIMEREPORT_EXPORT MessageHub: public QObject {
     Q_OBJECT
 public:
-    enum Severity { Information, Warning, Critical };
+    enum Severity {
+        Information,
+        Warning,
+        Critical
+    };
     Q_ENUM(Severity)
     static MessageHub* instance();
     static void information(QObject* parent, const QString& title, const QString& text);
@@ -25,8 +30,9 @@ public:
     void post(Severity severity, const QString& title, const QString& text);
 signals:
     void messagePosted(int severity, const QString& title, const QString& text);
+
 private:
-    explicit MessageHub(QObject* parent = nullptr) : QObject(parent) {}
+    explicit MessageHub(QObject* parent = nullptr): QObject(parent) { }
 };
 
 } // namespace LimeReport

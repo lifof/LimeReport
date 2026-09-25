@@ -1,13 +1,13 @@
 #ifndef LRQUICKPREVIEW_H
 #define LRQUICKPREVIEW_H
 
+#include "lrreportengine.h"
+
 #include <QObject>
 #include <QPointer>
 #include <QRectF>
 #include <QUrl>
 #include <QtQml/qqmlregistration.h>
-
-#include "lrreportengine.h"
 
 namespace LimeReport {
 
@@ -19,8 +19,7 @@ class PageDesignIntf;
  * Backend of the QML ReportPreview component. Holds the rendered pages of a
  * report in a scene that a ReportSceneView displays.
  */
-class QuickReportPreview : public QObject
-{
+class QuickReportPreview: public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(ReportPreviewController)
     Q_PROPERTY(QObject* engine READ engineObject WRITE setEngineObject NOTIFY engineChanged)

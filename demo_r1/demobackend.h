@@ -3,16 +3,16 @@
 
 #include <QObject>
 #include <QUrl>
+#include <QtQml/qqmlregistration.h>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
-#include <QtQml/qqmlregistration.h>
-#include <LimeReport>
+
 #include <LRCallbackDS>
+#include <LimeReport>
 
 // Owns the report engine of the demo and feeds it with external data
 // (Qt models and callback datasources).
-class DemoBackend : public QObject
-{
+class DemoBackend: public QObject {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON

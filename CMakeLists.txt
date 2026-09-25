@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(limereport LANGUAGES CXX C)
 
-set(LIMEREPORT_VERSION_MAJOR 2)
-set(LIMEREPORT_VERSION_MINOR 0)
-set(LIMEREPORT_VERSION_RELEASE 0)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" "${CMAKE_MODULE_PATH}")
+include(GenerateVersionHeader)
+
+set(DEFAULT_ITEM_PADDING 0 CACHE STRING "Default padding of report items")
 
 option(ENABLE_ZINT "Enable libzint build for barcode support" OFF)
 option(LIMEREPORT_STATIC "Build LimeReport as static library" OFF)
@@ -107,8 +108,6 @@ if (LIMEREPORT_STATIC)
     list(APPEND LIMEREPORT_SOURCES ${LR}/lrfactoryinitializer.cpp)
 endif()
 
-configure_file(config.h.in config.h @ONLY)
-
 set(LIMEREPORT_TARGET limereport-qt6)
 
 if (LIMEREPORT_STATIC)
@@ -117,6 +116,7 @@ if (LIMEREPORT_STATIC)
 else()
     add_library(${LIMEREPORT_TARGET} SHARED)
     target_compile_definitions(${LIMEREPORT_TARGET} PRIVATE LIMEREPORT_EXPORTS)
+    target_compile_definitions(${LIMEREPORT_TARGET} INTERFACE LIMEREPORT_IMPORTS)
 endif()
 add_library(LimeReport::LimeReport ALIAS ${LIMEREPORT_TARGET})
 
@@ -154,8 +154,8 @@ qt_add_qml_module(${LIMEREPORT_TARGET}
     OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml/LimeReport
 )
 
-target_compile_definitions(${LIMEREPORT_TARGET} PUBLIC CMAKE_CONFIG)
-target_compile_definitions(${LIMEREPORT_TARGET} PRIVATE HAVE_QT6 HAVE_REPORT_DESIGNER USE_QJSENGINE _CRT_SECURE_NO_WARNINGS)
+target_compile_definitions(${LIMEREPORT_TARGET} PRIVATE HAVE_QT6 HAVE_REPORT_DESIGNER USE_QJSENGINE _CRT_SECURE_NO_WARNINGS
+    DEFAULT_ITEM_PADDING=${DEFAULT_ITEM_PADDING})
 
 target_link_libraries(${LIMEREPORT_TARGET} PUBLIC
     Qt6::Core
@@ -175,7 +175,7 @@ endif()
 target_include_directories(${LIMEREPORT_TARGET}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/limereport>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/limereport>
     PRIVATE
         ${LR}
@@ -191,7 +191,7 @@ install(TARGETS ${LIMEREPORT_TARGET}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/limereport)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/limereport)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/limereport/version.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/limereport)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/qml/LimeReport DESTINATION ${CMAKE_INSTALL_LIBDIR}/qt6/qml)
 
 if (LIMEREPORT_BUILD_DESIGNER)

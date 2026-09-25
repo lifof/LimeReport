@@ -2,9 +2,12 @@
 
 namespace LimeReport {
 
-AbstractLayout::AbstractLayout(QString xmlTag, QObject* owner, GraphicsItem* parent)
-    : LayoutDesignIntf(xmlTag, owner, parent), m_isRelocating(false), m_layoutType(Layout),
-    m_hideEmptyItems(false), m_layoutSpacing(0)
+AbstractLayout::AbstractLayout(QString xmlTag, QObject* owner, GraphicsItem* parent):
+    LayoutDesignIntf(xmlTag, owner, parent),
+    m_isRelocating(false),
+    m_layoutType(Layout),
+    m_hideEmptyItems(false),
+    m_layoutSpacing(0)
 {
     setPossibleResizeDirectionFlags(AllDirections);
     m_layoutMarker = new LayoutMarker(this);
@@ -17,38 +20,25 @@ AbstractLayout::AbstractLayout(QString xmlTag, QObject* owner, GraphicsItem* par
 AbstractLayout::~AbstractLayout()
 {
     if (m_layoutMarker) {
-        delete m_layoutMarker; m_layoutMarker=0;
+        delete m_layoutMarker;
+        m_layoutMarker = 0;
     }
 }
 
-QList<BaseDesignIntf*>& AbstractLayout::layoutsChildren()
-{
-    return m_children;
-}
+QList<BaseDesignIntf*>& AbstractLayout::layoutsChildren() { return m_children; }
 
-bool AbstractLayout::isRelocating() const
-{
-    return m_isRelocating;
-}
+bool AbstractLayout::isRelocating() const { return m_isRelocating; }
 
-void AbstractLayout::setIsRelocating(bool isRelocating)
-{
-    m_isRelocating = isRelocating;
-}
+void AbstractLayout::setIsRelocating(bool isRelocating) { m_isRelocating = isRelocating; }
 
-AbstractLayout::LayoutType AbstractLayout::layoutType() const
-{
-    return m_layoutType;
-}
+AbstractLayout::LayoutType AbstractLayout::layoutType() const { return m_layoutType; }
 
-void AbstractLayout::setLayoutType(const LayoutType& layoutType)
-{
-    m_layoutType = layoutType;
-}
+void AbstractLayout::setLayoutType(const LayoutType& layoutType) { m_layoutType = layoutType; }
 
 void AbstractLayout::addChild(BaseDesignIntf* item, bool updateSize)
 {
-    placeItemInLayout(item);
+    if (updateSize)
+        placeItemInLayout(item);
 
     m_children.append(item);
     item->setParentItem(this);
@@ -58,13 +48,13 @@ void AbstractLayout::addChild(BaseDesignIntf* item, bool updateSize)
 
     connectToLayout(item);
 
-    if (updateSize){
+    if (updateSize) {
         relocateChildren();
         updateLayoutSize();
     }
 }
 
-void AbstractLayout::removeChild(BaseDesignIntf *item)
+void AbstractLayout::removeChild(BaseDesignIntf* item)
 {
     if (!item) {
         return;
@@ -75,8 +65,9 @@ void AbstractLayout::removeChild(BaseDesignIntf *item)
 
 void AbstractLayout::restoreChild(BaseDesignIntf* item)
 {
-    if (m_children.contains(item)) return;
-    m_isRelocating=true;
+    if (m_children.contains(item))
+        return;
+    m_isRelocating = true;
 
     insertItemInLayout(item);
 
@@ -88,7 +79,7 @@ void AbstractLayout::restoreChild(BaseDesignIntf* item)
     item->setParentItem(this);
 
     updateLayoutSize();
-    m_isRelocating=false;
+    m_isRelocating = false;
 }
 
 bool AbstractLayout::isEmpty() const
@@ -97,50 +88,44 @@ bool AbstractLayout::isEmpty() const
     bool allItemsIsText = true;
     foreach (GraphicsItem* qgItem, childItems()) {
         ContentItemDesignIntf* item = dynamic_cast<ContentItemDesignIntf*>(qgItem);
-        if (item && !item->content().isEmpty()) isEmpty = false;
+        if (item && !item->content().isEmpty())
+            isEmpty = false;
         if (!item && dynamic_cast<BaseDesignIntf*>(qgItem))
             allItemsIsText = false;
     }
     return (isEmpty && allItemsIsText);
 }
 
-void AbstractLayout::paintChild(BaseDesignIntf *child, QPointF parentPos, QPainter *painter)
+void AbstractLayout::paintChild(BaseDesignIntf* child, QPointF parentPos, QPainter* painter)
 {
-    if (!child->childBaseItems().isEmpty()){
+    if (!child->childBaseItems().isEmpty()) {
         foreach (BaseDesignIntf* item, child->childBaseItems()) {
-            paintChild(item, child->pos(),painter);
+            paintChild(item, child->pos(), painter);
         }
     }
-    painter->drawRect(
-        QRectF(parentPos.x()+child->pos().x(), parentPos.y()+child->pos().y(),
-               child->rect().bottomRight().rx(),
-               child->rect().bottomRight().ry()
-        )
-    );
+    painter->drawRect(QRectF(parentPos.x() + child->pos().x(), parentPos.y() + child->pos().y(),
+                             child->rect().bottomRight().rx(), child->rect().bottomRight().ry()));
 }
 
 void AbstractLayout::paint(QPainter* painter, const StyleOptionGraphicsItem* option)
 {
-    if (isSelected()){
+    if (isSelected()) {
         painter->save();
         painter->setPen(Qt::red);
-        foreach( BaseDesignIntf* item, m_children){
-            paintChild(item, QPointF(0,0), painter);
+        foreach (BaseDesignIntf* item, m_children) {
+            paintChild(item, QPointF(0, 0), painter);
         }
         painter->restore();
     }
     LayoutDesignIntf::paint(painter, option);
 }
 
-int AbstractLayout::childrenCount()
-{
-    return m_children.size();
-}
+int AbstractLayout::childrenCount() { return m_children.size(); }
 
 void AbstractLayout::beforeDelete()
 {
-    foreach (QObject *item, QObject::children()) {
-        BaseDesignIntf *bi = dynamic_cast<BaseDesignIntf*>(item);
+    foreach (QObject* item, QObject::children()) {
+        BaseDesignIntf* bi = dynamic_cast<BaseDesignIntf*>(item);
         if (bi) {
             bi->disconnect(this);
             bi->setParentItem(parentItem());
@@ -154,16 +139,13 @@ void AbstractLayout::beforeDelete()
     m_children.clear();
 }
 
-void AbstractLayout::childAddedEvent(BaseDesignIntf* child)
-{
-    addChild(child,false);
-}
+void AbstractLayout::childAddedEvent(BaseDesignIntf* child) { addChild(child, false); }
 
 void AbstractLayout::geometryChangedEvent(QRectF newRect, QRectF)
 {
     layoutMarker()->setHeight(newRect.height());
     relocateChildren();
-    if (!isRelocating()){
+    if (!isRelocating()) {
         divideSpace();
     }
 }
@@ -171,7 +153,7 @@ void AbstractLayout::geometryChangedEvent(QRectF newRect, QRectF)
 void AbstractLayout::initMode(BaseDesignIntf::ItemMode mode)
 {
     BaseDesignIntf::initMode(mode);
-    if ((mode==PreviewMode)||(mode==PrintMode)){
+    if ((mode == PreviewMode) || (mode == PrintMode)) {
         layoutMarker()->setVisible(false);
     } else {
         layoutMarker()->setVisible(true);
@@ -181,18 +163,18 @@ void AbstractLayout::initMode(BaseDesignIntf::ItemMode mode)
 void AbstractLayout::setBorderLinesFlags(BaseDesignIntf::BorderLines flags)
 {
     BaseDesignIntf::setBorderLinesFlags(flags);
-    if (flags!=0)
+    if (flags != 0)
         relocateChildren();
 }
 
 void AbstractLayout::collectionLoadFinished(const QString& collectionName)
 {
     ItemDesignIntf::collectionLoadFinished(collectionName);
-    if (collectionName.compare("children",Qt::CaseInsensitive)==0){
-        foreach(QObject* obj,QObject::children()){
+    if (collectionName.compare("children", Qt::CaseInsensitive) == 0) {
+        foreach (QObject* obj, QObject::children()) {
             BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(obj);
             if (item) {
-                addChild(item,false);
+                addChild(item, false);
             }
         }
     }
@@ -212,9 +194,9 @@ bool AbstractLayout::isNeedUpdateSize(RenderPass pass) const
 
 QVariant AbstractLayout::itemChange(GraphicsItem::GraphicsItemChange change, const QVariant& value)
 {
-    if (change == GraphicsItem::ItemSelectedHasChanged){
+    if (change == GraphicsItem::ItemSelectedHasChanged) {
         setIsRelocating(true);
-        foreach(BaseDesignIntf* item, layoutsChildren()){
+        foreach (BaseDesignIntf* item, layoutsChildren()) {
             item->setVisible(!value.toBool());
         }
         setIsRelocating(false);
@@ -226,7 +208,7 @@ void AbstractLayout::updateItemSize(DataSourceManager* dataManager, RenderPass p
 {
     setIsRelocating(true);
     ItemDesignIntf::updateItemSize(dataManager, pass, maxHeight);
-    foreach(GraphicsItem *child, childItems()){
+    foreach (GraphicsItem* child, childItems()) {
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(child);
         if (item && item->isNeedUpdateSize(pass))
             item->updateItemSize(dataManager, pass, maxHeight);
@@ -237,8 +219,9 @@ void AbstractLayout::updateItemSize(DataSourceManager* dataManager, RenderPass p
     BaseDesignIntf::updateItemSize(dataManager, pass, maxHeight);
 }
 
-void AbstractLayout::rebuildChildrenIfNeeded(){
-    if (layoutsChildren().count() < childItems().size()-1){
+void AbstractLayout::rebuildChildrenIfNeeded()
+{
+    if (layoutsChildren().count() < childItems().size() - 1) {
         layoutsChildren().clear();
         foreach (BaseDesignIntf* childItem, childBaseItems()) {
             layoutsChildren().append(childItem);
@@ -247,76 +230,75 @@ void AbstractLayout::rebuildChildrenIfNeeded(){
     }
 }
 
-void AbstractLayout::connectToLayout(BaseDesignIntf *item)
+void AbstractLayout::connectToLayout(BaseDesignIntf* item)
 {
-    connect(
-        item, SIGNAL(destroyed(QObject*)),
-        this, SLOT(slotOnChildDestroy(QObject*))
-        );
-    connect(
-        item,SIGNAL(geometryChanged(QObject*,QRectF,QRectF)),
-        this,SLOT(slotOnChildGeometryChanged(QObject*,QRectF,QRectF))
-        );
-    connect(
-        item, SIGNAL(itemVisibleHasChanged(BaseDesignIntf*)),
-        this, SLOT(slotOnChildVisibleHasChanged(BaseDesignIntf*))
-        );
-    connect(
-        item, SIGNAL(itemSelectedHasBeenChanged(BaseDesignIntf*,bool)),
-        this, SLOT(slotOnChildSelectionHasChanged(BaseDesignIntf*,bool))
-        );
-    connect(
-        item, SIGNAL(itemAlignChanged(BaseDesignIntf*, const ItemAlign&, const ItemAlign&)),
-        this, SLOT(slotOnChildItemAlignChanged(BaseDesignIntf*,const ItemAlign&,const ItemAlign&))
-        );
+    connect(item, SIGNAL(destroyed(QObject*)), this, SLOT(slotOnChildDestroy(QObject*)));
+    connect(item, SIGNAL(geometryChanged(QObject*, QRectF, QRectF)), this,
+            SLOT(slotOnChildGeometryChanged(QObject*, QRectF, QRectF)));
+    connect(item, SIGNAL(itemVisibleHasChanged(BaseDesignIntf*)), this,
+            SLOT(slotOnChildVisibleHasChanged(BaseDesignIntf*)));
+    connect(item, SIGNAL(itemSelectedHasBeenChanged(BaseDesignIntf*, bool)), this,
+            SLOT(slotOnChildSelectionHasChanged(BaseDesignIntf*, bool)));
+    connect(item, SIGNAL(itemAlignChanged(BaseDesignIntf*, const ItemAlign&, const ItemAlign&)),
+            this,
+            SLOT(slotOnChildItemAlignChanged(BaseDesignIntf*, const ItemAlign&, const ItemAlign&)));
 }
 
-void AbstractLayout::disconnectFromLayout(BaseDesignIntf *item)
+void AbstractLayout::disconnectFromLayout(BaseDesignIntf* item)
 {
+    disconnect(item, SIGNAL(destroyed(QObject*)), this, SLOT(slotOnChildDestroy(QObject*)));
+    disconnect(item, SIGNAL(geometryChanged(QObject*, QRectF, QRectF)), this,
+               SLOT(slotOnChildGeometryChanged(QObject*, QRectF, QRectF)));
+    disconnect(item, SIGNAL(itemVisibleHasChanged(BaseDesignIntf*)), this,
+               SLOT(slotOnChildVisibleHasChanged(BaseDesignIntf*)));
+    disconnect(item, SIGNAL(itemSelectedHasBeenChanged(BaseDesignIntf*, bool)), this,
+               SLOT(slotOnChildSelectionHasChanged(BaseDesignIntf*, bool)));
     disconnect(
-        item, SIGNAL(destroyed(QObject*)),
-        this, SLOT(slotOnChildDestroy(QObject*))
-        );
-    disconnect(
-        item,SIGNAL(geometryChanged(QObject*,QRectF,QRectF)),
-        this,SLOT(slotOnChildGeometryChanged(QObject*,QRectF,QRectF))
-        );
-    disconnect(
-        item, SIGNAL(itemVisibleHasChanged(BaseDesignIntf*)),
-        this, SLOT(slotOnChildVisibleHasChanged(BaseDesignIntf*))
-        );
-    disconnect(
-        item, SIGNAL(itemSelectedHasBeenChanged(BaseDesignIntf*,bool)),
-        this, SLOT(slotOnChildSelectionHasChanged(BaseDesignIntf*,bool))
-        );
-    disconnect(
-        item, SIGNAL(itemAlignChanged(BaseDesignIntf*, const ItemAlign&, const ItemAlign&)),
-        this, SLOT(slotOnChildItemAlignChanged(BaseDesignIntf*,const ItemAlign&,const ItemAlign&))
-        );
+        item, SIGNAL(itemAlignChanged(BaseDesignIntf*, const ItemAlign&, const ItemAlign&)), this,
+        SLOT(slotOnChildItemAlignChanged(BaseDesignIntf*, const ItemAlign&, const ItemAlign&)));
 }
 
-BaseDesignIntf *AbstractLayout::findNext(BaseDesignIntf *item)
+BaseDesignIntf* AbstractLayout::findNext(BaseDesignIntf* item)
 {
     rebuildChildrenIfNeeded();
-    for (int i=0; i<layoutsChildren().count();++i){
-        if (layoutsChildren()[i]==item && layoutsChildren().size()>i+1){ return layoutsChildren()[i+1];}
+    for (int i = 0; i < layoutsChildren().count(); ++i) {
+        if (layoutsChildren()[i] == item && layoutsChildren().size() > i + 1) {
+            return layoutsChildren()[i + 1];
+        }
     }
     return 0;
 }
 
-BaseDesignIntf *AbstractLayout::findPrior(BaseDesignIntf *item)
+BaseDesignIntf* AbstractLayout::findPrior(BaseDesignIntf* item)
 {
     rebuildChildrenIfNeeded();
-    for (int i=0; i<layoutsChildren().count();++i){
-        if (layoutsChildren()[i]==item && i!=0){ return layoutsChildren()[i-1];}
+    for (int i = 0; i < layoutsChildren().count(); ++i) {
+        if (layoutsChildren()[i] == item && i != 0) {
+            return layoutsChildren()[i - 1];
+        }
     }
     return 0;
+}
+
+void AbstractLayout::insertItemInLayout(BaseDesignIntf* item)
+{
+    bool inserted = false;
+    for (int i = 0; i < layoutsChildren().length(); ++i) {
+        BaseDesignIntf* child = layoutsChildren()[i];
+        if (child->pos() == item->pos()) {
+            layoutsChildren().insert(i, item);
+            inserted = true;
+            break;
+        }
+    }
+    if (!inserted)
+        layoutsChildren().append(item);
 }
 
 void AbstractLayout::slotOnChildDestroy(QObject* child)
 {
     m_children.removeAll(static_cast<BaseDesignIntf*>(child));
-    if (m_children.count() < 2 && !static_cast<LayoutDesignIntf*>(child)){
+    if (m_children.count() < 2 && !static_cast<LayoutDesignIntf*>(child)) {
         beforeDelete();
     } else {
         relocateChildren();
@@ -324,19 +306,20 @@ void AbstractLayout::slotOnChildDestroy(QObject* child)
     }
 }
 
-void AbstractLayout::slotOnChildGeometryChanged(QObject* item, QRectF newGeometry, QRectF oldGeometry)
+void AbstractLayout::slotOnChildGeometryChanged(QObject* item, QRectF newGeometry,
+                                                QRectF oldGeometry)
 {
-    if (!m_isRelocating && !isLoading()){
-        if (m_layoutType == Layout){
+    if (!m_isRelocating && !isLoading()) {
+        if (m_layoutType == Layout) {
             relocateChildren();
             updateLayoutSize();
         } else {
             m_isRelocating = true;
-            qreal delta = newGeometry.width()-oldGeometry.width();
+            qreal delta = newGeometry.width() - oldGeometry.width();
             BaseDesignIntf* resizingItem = findNext(dynamic_cast<BaseDesignIntf*>(item));
             if (resizingItem) {
-                resizingItem->setWidth(resizingItem->width()-delta);
-                resizingItem->setPos(resizingItem->pos().x()+delta,resizingItem->pos().y());
+                resizingItem->setWidth(resizingItem->width() - delta);
+                resizingItem->setPos(resizingItem->pos().x() + delta, resizingItem->pos().y());
             }
             updateLayoutSize();
             m_isRelocating = false;
@@ -344,7 +327,8 @@ void AbstractLayout::slotOnChildGeometryChanged(QObject* item, QRectF newGeometr
     }
 }
 
-void AbstractLayout::slotOnChildItemAlignChanged(BaseDesignIntf* item, const ItemAlign&, const ItemAlign&)
+void AbstractLayout::slotOnChildItemAlignChanged(BaseDesignIntf* item, const ItemAlign&,
+                                                 const ItemAlign&)
 {
     item->setPossibleResizeDirectionFlags(ResizeBottom | ResizeRight);
 }
@@ -352,28 +336,25 @@ void AbstractLayout::slotOnChildItemAlignChanged(BaseDesignIntf* item, const Ite
 void AbstractLayout::slotOnChildVisibleHasChanged(BaseDesignIntf*)
 {
     relocateChildren();
-    if (m_layoutType == Table && !m_isRelocating){
+    if (m_layoutType == Table && !m_isRelocating) {
         divideSpace();
     }
 }
 
 void AbstractLayout::slotOnChildSelectionHasChanged(BaseDesignIntf* item, bool value)
 {
-    item->setZValue(value ? item->zValue()+1 : item->zValue()-1);
+    item->setZValue(value ? item->zValue() + 1 : item->zValue() - 1);
 }
 
-int AbstractLayout::layoutSpacing() const
-{
-    return m_layoutSpacing;
-}
+int AbstractLayout::layoutSpacing() const { return m_layoutSpacing; }
 
 void AbstractLayout::setLayoutSpacing(int layoutSpacing)
 {
-     if (m_layoutSpacing != layoutSpacing){
+    if (m_layoutSpacing != layoutSpacing) {
         int oldValue = m_layoutSpacing;
         m_layoutSpacing = layoutSpacing;
-        if (!isLoading()){
-            int delta  = (m_layoutSpacing - oldValue)  * (m_children.count()-1);
+        if (!isLoading()) {
+            int delta = (m_layoutSpacing - oldValue) * (m_children.count() - 1);
             notify("layoutSpacing", oldValue, m_layoutSpacing);
             setWidth(width() + delta);
         }
@@ -381,16 +362,13 @@ void AbstractLayout::setLayoutSpacing(int layoutSpacing)
     }
 }
 
-bool AbstractLayout::hideEmptyItems() const
-{
-    return m_hideEmptyItems;
-}
+bool AbstractLayout::hideEmptyItems() const { return m_hideEmptyItems; }
 
 void AbstractLayout::setHideEmptyItems(bool hideEmptyItems)
 {
     m_hideEmptyItems = hideEmptyItems;
 
-    if (m_hideEmptyItems != hideEmptyItems){
+    if (m_hideEmptyItems != hideEmptyItems) {
         m_hideEmptyItems = hideEmptyItems;
         notify("hideEmptyItems", !m_hideEmptyItems, m_hideEmptyItems);
     }
@@ -399,13 +377,11 @@ void AbstractLayout::setHideEmptyItems(bool hideEmptyItems)
 QObject* AbstractLayout::at(int index)
 {
     rebuildChildrenIfNeeded();
-    if (layoutsChildren().size() > index) return layoutsChildren()[index];
+    if (layoutsChildren().size() > index)
+        return layoutsChildren()[index];
     return 0;
 }
 
-LayoutMarker* AbstractLayout::layoutMarker() const
-{
-    return m_layoutMarker;
-}
+LayoutMarker* AbstractLayout::layoutMarker() const { return m_layoutMarker; }
 
 } // namespace LimeReport

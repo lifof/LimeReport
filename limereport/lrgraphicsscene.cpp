@@ -29,13 +29,14 @@
  ****************************************************************************/
 #include "lrgraphicsscene.h"
 
-#include <QPainter>
-#include <QPaintDevice>
-#include <QKeyEvent>
-#include <QMimeData>
 #include <QAction>
-#include <QTimer>
+#include <QKeyEvent>
 #include <QMetaMethod>
+#include <QMimeData>
+#include <QPaintDevice>
+#include <QPainter>
+#include <QTimer>
+
 #include <algorithm>
 
 namespace LimeReport {
@@ -73,7 +74,10 @@ void PopupMenu::insertAction(QAction* before, QAction* action)
 {
     m_actions.removeAll(action);
     int index = m_actions.indexOf(before);
-    if (index < 0) m_actions.append(action); else m_actions.insert(index, action);
+    if (index < 0)
+        m_actions.append(action);
+    else
+        m_actions.insert(index, action);
     emit actionsChanged();
 }
 
@@ -88,7 +92,8 @@ QAction* PopupMenu::insertSeparator(QAction* before)
 QList<QObject*> PopupMenu::actionObjects() const
 {
     QList<QObject*> result;
-    for (QAction* action : m_actions) result.append(action);
+    for (QAction* action : m_actions)
+        result.append(action);
     return result;
 }
 
@@ -111,9 +116,11 @@ QVariantList PopupMenu::items() const
 
 void PopupMenu::trigger(int index)
 {
-    if (index < 0 || index >= m_actions.size()) return;
+    if (index < 0 || index >= m_actions.size())
+        return;
     QAction* action = m_actions.at(index);
-    if (action->isSeparator() || !action->isEnabled()) return;
+    if (action->isSeparator() || !action->isEnabled())
+        return;
     action->trigger();
     emit triggered(action);
 }
@@ -124,11 +131,19 @@ void PopupMenu::trigger(int index)
 
 static bool zLessThan(const GraphicsItem* a, const GraphicsItem* b);
 
-GraphicsItem::GraphicsItem(GraphicsItem* parent)
-    : m_scene(nullptr), m_parent(nullptr), m_scale(1), m_z(0), m_visible(true), m_enabled(true),
-      m_selected(false), m_acceptHover(false), m_acceptDrops(false), m_hasCursor(false),
-      m_acceptedButtons(Qt::LeftButton | Qt::RightButton | Qt::MiddleButton),
-      m_insertionOrder(0)
+GraphicsItem::GraphicsItem(GraphicsItem* parent):
+    m_scene(nullptr),
+    m_parent(nullptr),
+    m_scale(1),
+    m_z(0),
+    m_visible(true),
+    m_enabled(true),
+    m_selected(false),
+    m_acceptHover(false),
+    m_acceptDrops(false),
+    m_hasCursor(false),
+    m_acceptedButtons(Qt::LeftButton | Qt::RightButton | Qt::MiddleButton),
+    m_insertionOrder(0)
 {
     static quint64 counter = 0;
     m_insertionOrder = ++counter;
@@ -136,7 +151,8 @@ GraphicsItem::GraphicsItem(GraphicsItem* parent)
         // No virtual calls on this object here: it is not fully constructed yet.
         m_parent = parent;
         parent->m_children.append(this);
-        if (parent->m_scene) setSceneRecursive(parent->m_scene);
+        if (parent->m_scene)
+            setSceneRecursive(parent->m_scene);
         parent->itemChange(ItemChildAddedChange, QVariant::fromValue<GraphicsItem*>(this));
         parent->update();
     }
@@ -161,7 +177,8 @@ GraphicsItem::~GraphicsItem()
         delete child;
     }
     m_scene = nullptr;
-    if (scene) scene->itemDestroyed(this, wasSelected);
+    if (scene)
+        scene->itemDestroyed(this, wasSelected);
 }
 
 QPainterPath GraphicsItem::shape() const
@@ -171,24 +188,24 @@ QPainterPath GraphicsItem::shape() const
     return path;
 }
 
-bool GraphicsItem::contains(const QPointF& point) const
-{
-    return shape().contains(point);
-}
+bool GraphicsItem::contains(const QPointF& point) const { return shape().contains(point); }
 
 GraphicsItem* GraphicsItem::topLevelItem() const
 {
     const GraphicsItem* item = this;
-    while (item->m_parent) item = item->m_parent;
+    while (item->m_parent)
+        item = item->m_parent;
     return const_cast<GraphicsItem*>(item);
 }
 
 bool GraphicsItem::isAncestorOf(const GraphicsItem* child) const
 {
-    if (!child) return false;
+    if (!child)
+        return false;
     const GraphicsItem* p = child->m_parent;
     while (p) {
-        if (p == this) return true;
+        if (p == this)
+            return true;
         p = p->m_parent;
     }
     return false;
@@ -203,7 +220,8 @@ QList<GraphicsItem*> GraphicsItem::childItems() const
 
 void GraphicsItem::setSceneRecursive(GraphicsScene* scene)
 {
-    if (m_scene == scene) return;
+    if (m_scene == scene)
+        return;
     QVariant v = itemChange(ItemSceneChange, QVariant::fromValue<QObject*>(scene));
     Q_UNUSED(v)
     if (m_scene) {
@@ -213,17 +231,21 @@ void GraphicsItem::setSceneRecursive(GraphicsScene* scene)
         old->itemDestroyed(this, wasSelected);
     }
     m_scene = scene;
-    foreach (GraphicsItem* child, m_children) child->setSceneRecursive(scene);
+    foreach (GraphicsItem* child, m_children)
+        child->setSceneRecursive(scene);
     itemChange(ItemSceneHasChanged, QVariant::fromValue<QObject*>(scene));
 }
 
 void GraphicsItem::setParentItem(GraphicsItem* newParent)
 {
-    if (newParent == m_parent) return;
-    if (newParent == this || isAncestorOf(newParent)) return;
+    if (newParent == m_parent)
+        return;
+    if (newParent == this || isAncestorOf(newParent))
+        return;
     QVariant v = itemChange(ItemParentChange, QVariant::fromValue<GraphicsItem*>(newParent));
     newParent = v.value<GraphicsItem*>();
-    if (newParent == m_parent) return;
+    if (newParent == m_parent)
+        return;
 
     update();
     if (m_parent) {
@@ -256,7 +278,8 @@ void GraphicsItem::setPos(const QPointF& pos)
     if (m_flags & ItemSendsGeometryChanges) {
         newPos = itemChange(ItemPositionChange, newPos).toPointF();
     }
-    if (newPos == m_pos) return;
+    if (newPos == m_pos)
+        return;
     update();
     m_pos = newPos;
     update();
@@ -264,15 +287,13 @@ void GraphicsItem::setPos(const QPointF& pos)
         itemChange(ItemPositionHasChanged, m_pos);
 }
 
-QPointF GraphicsItem::scenePos() const
-{
-    return mapToScene(QPointF(0, 0));
-}
+QPointF GraphicsItem::scenePos() const { return mapToScene(QPointF(0, 0)); }
 
 void GraphicsItem::setScale(qreal scale)
 {
     qreal newScale = itemChange(ItemScaleChange, scale).toReal();
-    if (qFuzzyCompare(newScale, m_scale)) return;
+    if (qFuzzyCompare(newScale, m_scale))
+        return;
     update();
     m_scale = newScale;
     update();
@@ -282,7 +303,8 @@ void GraphicsItem::setScale(qreal scale)
 void GraphicsItem::setZValue(qreal z)
 {
     qreal newZ = itemChange(ItemZValueChange, z).toReal();
-    if (newZ == m_z) return;
+    if (newZ == m_z)
+        return;
     m_z = newZ;
     update();
     itemChange(ItemZValueHasChanged, m_z);
@@ -290,24 +312,30 @@ void GraphicsItem::setZValue(qreal z)
 
 bool GraphicsItem::isVisible() const
 {
-    if (!m_visible) return false;
+    if (!m_visible)
+        return false;
     return m_parent ? m_parent->isVisible() : true;
 }
 
 void GraphicsItem::setVisible(bool visible)
 {
-    if (m_visible == visible) return;
+    if (m_visible == visible)
+        return;
     visible = itemChange(ItemVisibleChange, visible).toBool();
-    if (m_visible == visible) return;
-    if (!visible) update();
+    if (m_visible == visible)
+        return;
+    if (!visible)
+        update();
     m_visible = visible;
     if (!visible) {
         if (m_scene) {
             if (m_scene->m_mouseGrabber == this || isAncestorOf(m_scene->m_mouseGrabber))
                 m_scene->m_mouseGrabber = nullptr;
-            if (hasFocus()) clearFocus();
+            if (hasFocus())
+                clearFocus();
         }
-        if (m_selected) setSelected(false);
+        if (m_selected)
+            setSelected(false);
     } else {
         update();
     }
@@ -316,28 +344,37 @@ void GraphicsItem::setVisible(bool visible)
 
 void GraphicsItem::setSelected(bool selected)
 {
-    if (m_selected == selected) return;
-    if (selected && (!(m_flags & ItemIsSelectable) || !isVisible() || !m_enabled)) return;
+    if (m_selected == selected)
+        return;
+    if (selected && (!(m_flags & ItemIsSelectable) || !isVisible() || !m_enabled))
+        return;
     bool newValue = itemChange(ItemSelectedChange, selected).toBool();
-    if (m_selected == newValue) return;
+    if (m_selected == newValue)
+        return;
     m_selected = newValue;
     update();
-    if (m_scene) m_scene->itemSelectionChanged();
+    if (m_scene)
+        m_scene->itemSelectionChanged();
     itemChange(ItemSelectedHasChanged, m_selected);
 }
 
 void GraphicsItem::setFlag(GraphicsItemFlag flag, bool enabled)
 {
     GraphicsItemFlags f = m_flags;
-    if (enabled) f |= flag; else f &= ~flag;
+    if (enabled)
+        f |= flag;
+    else
+        f &= ~flag;
     setFlags(f);
 }
 
 void GraphicsItem::setFlags(GraphicsItemFlags flags)
 {
-    if (m_flags == flags) return;
+    if (m_flags == flags)
+        return;
     m_flags = flags;
-    if (!(m_flags & ItemIsSelectable) && m_selected) setSelected(false);
+    if (!(m_flags & ItemIsSelectable) && m_selected)
+        setSelected(false);
     update();
 }
 
@@ -347,67 +384,62 @@ void GraphicsItem::setCursor(const QCursor& cursor)
     m_cursor = cursor;
     m_hasCursor = true;
     itemChange(ItemCursorHasChanged, QVariant::fromValue(cursor));
-    if (m_scene) emit m_scene->cursorChanged();
+    if (m_scene)
+        emit m_scene->cursorChanged();
 }
 
 void GraphicsItem::unsetCursor()
 {
     m_hasCursor = false;
     m_cursor = QCursor();
-    if (m_scene) emit m_scene->cursorChanged();
+    if (m_scene)
+        emit m_scene->cursorChanged();
 }
 
-bool GraphicsItem::hasFocus() const
-{
-    return m_scene && m_scene->m_focusItem == this;
-}
+bool GraphicsItem::hasFocus() const { return m_scene && m_scene->m_focusItem == this; }
 
 void GraphicsItem::setFocus()
 {
-    if (m_scene) m_scene->setFocusItem(this);
+    if (m_scene)
+        m_scene->setFocusItem(this);
 }
 
 void GraphicsItem::clearFocus()
 {
-    if (m_scene && m_scene->m_focusItem == this) m_scene->setFocusItem(nullptr);
+    if (m_scene && m_scene->m_focusItem == this)
+        m_scene->setFocusItem(nullptr);
 }
 
 void GraphicsItem::update(const QRectF& rect)
 {
-    if (!m_scene) return;
+    if (!m_scene)
+        return;
     QRectF r = rect.isNull() ? boundingRect() : rect;
     m_scene->update(mapRectToScene(r));
 }
 
-void GraphicsItem::prepareGeometryChange()
-{
-    update();
-}
+void GraphicsItem::prepareGeometryChange() { update(); }
 
 QTransform GraphicsItem::transform() const
 {
     QTransform t;
     t.translate(m_pos.x(), m_pos.y());
-    if (m_scale != 1) t.scale(m_scale, m_scale);
+    if (m_scale != 1)
+        t.scale(m_scale, m_scale);
     return t;
 }
 
 QTransform GraphicsItem::sceneTransform() const
 {
     QTransform t = transform();
-    if (m_parent) t = t * m_parent->sceneTransform();
+    if (m_parent)
+        t = t * m_parent->sceneTransform();
     return t;
 }
 
-QRectF GraphicsItem::sceneBoundingRect() const
-{
-    return sceneTransform().mapRect(boundingRect());
-}
+QRectF GraphicsItem::sceneBoundingRect() const { return sceneTransform().mapRect(boundingRect()); }
 
-QPointF GraphicsItem::mapToScene(const QPointF& point) const
-{
-    return sceneTransform().map(point);
-}
+QPointF GraphicsItem::mapToScene(const QPointF& point) const { return sceneTransform().map(point); }
 
 QPolygonF GraphicsItem::mapToScene(const QRectF& rect) const
 {
@@ -429,10 +461,7 @@ QPolygonF GraphicsItem::mapFromScene(const QRectF& rect) const
     return sceneTransform().inverted().map(QPolygonF(rect));
 }
 
-QPointF GraphicsItem::mapToParent(const QPointF& point) const
-{
-    return transform().map(point);
-}
+QPointF GraphicsItem::mapToParent(const QPointF& point) const { return transform().map(point); }
 
 QPointF GraphicsItem::mapFromParent(const QPointF& point) const
 {
@@ -461,10 +490,7 @@ QRectF GraphicsItem::mapRectFromScene(const QRectF& rect) const
     return sceneTransform().inverted().mapRect(rect);
 }
 
-QRectF GraphicsItem::mapRectToParent(const QRectF& rect) const
-{
-    return transform().mapRect(rect);
-}
+QRectF GraphicsItem::mapRectToParent(const QRectF& rect) const { return transform().mapRect(rect); }
 
 QRectF GraphicsItem::mapRectFromParent(const QRectF& rect) const
 {
@@ -473,7 +499,8 @@ QRectF GraphicsItem::mapRectFromParent(const QRectF& rect) const
 
 bool GraphicsItem::collidesWithItem(const GraphicsItem* other, Qt::ItemSelectionMode mode) const
 {
-    if (!other || other == this) return false;
+    if (!other || other == this)
+        return false;
     if (mode == Qt::IntersectsItemBoundingRect || mode == Qt::ContainsItemBoundingRect) {
         QRectF a = sceneBoundingRect();
         QRectF b = other->sceneBoundingRect();
@@ -486,7 +513,8 @@ bool GraphicsItem::collidesWithItem(const GraphicsItem* other, Qt::ItemSelection
 
 QList<GraphicsItem*> GraphicsItem::collidingItems(Qt::ItemSelectionMode mode) const
 {
-    if (!m_scene) return QList<GraphicsItem*>();
+    if (!m_scene)
+        return QList<GraphicsItem*>();
     return m_scene->collidingItems(this, mode);
 }
 
@@ -537,9 +565,11 @@ void GraphicsItem::mouseReleaseEvent(GraphicsSceneMouseEvent* event)
                 ++m_scene->m_selectionChanging;
                 bool wasSelected = m_selected;
                 foreach (GraphicsItem* item, m_scene->selectedItems()) {
-                    if (item != this) item->setSelected(false);
+                    if (item != this)
+                        item->setSelected(false);
                 }
-                if (!wasSelected) setSelected(true);
+                if (!wasSelected)
+                    setSelected(true);
                 --m_scene->m_selectionChanging;
                 if (m_scene->m_selectionChanging == 0 && m_scene->m_selectionDirty) {
                     m_scene->m_selectionDirty = false;
@@ -552,25 +582,29 @@ void GraphicsItem::mouseReleaseEvent(GraphicsSceneMouseEvent* event)
     }
 }
 
-void GraphicsItem::mouseDoubleClickEvent(GraphicsSceneMouseEvent* event)
-{
-    mousePressEvent(event);
-}
+void GraphicsItem::mouseDoubleClickEvent(GraphicsSceneMouseEvent* event) { mousePressEvent(event); }
 
 void GraphicsItem::hoverEnterEvent(GraphicsSceneHoverEvent*) { update(); }
-void GraphicsItem::hoverMoveEvent(GraphicsSceneHoverEvent*) {}
+void GraphicsItem::hoverMoveEvent(GraphicsSceneHoverEvent*) { }
 void GraphicsItem::hoverLeaveEvent(GraphicsSceneHoverEvent*) { update(); }
 void GraphicsItem::contextMenuEvent(GraphicsSceneContextMenuEvent* event) { event->ignore(); }
-void GraphicsItem::dragEnterEvent(GraphicsSceneDragDropEvent* event) { event->setAccepted(m_acceptDrops); }
-void GraphicsItem::dragMoveEvent(GraphicsSceneDragDropEvent* event) { event->setAccepted(m_acceptDrops); }
-void GraphicsItem::dragLeaveEvent(GraphicsSceneDragDropEvent*) {}
+void GraphicsItem::dragEnterEvent(GraphicsSceneDragDropEvent* event)
+{
+    event->setAccepted(m_acceptDrops);
+}
+void GraphicsItem::dragMoveEvent(GraphicsSceneDragDropEvent* event)
+{
+    event->setAccepted(m_acceptDrops);
+}
+void GraphicsItem::dragLeaveEvent(GraphicsSceneDragDropEvent*) { }
 void GraphicsItem::dropEvent(GraphicsSceneDragDropEvent* event) { event->ignore(); }
 void GraphicsItem::keyPressEvent(QKeyEvent* event) { event->ignore(); }
 void GraphicsItem::keyReleaseEvent(QKeyEvent* event) { event->ignore(); }
 
 static bool zLessThan(const GraphicsItem* a, const GraphicsItem* b)
 {
-    if (a->zValue() != b->zValue()) return a->zValue() < b->zValue();
+    if (a->zValue() != b->zValue())
+        return a->zValue() < b->zValue();
     return false; // stable_sort keeps insertion order
 }
 
@@ -595,10 +629,17 @@ void GraphicsRectItem::paint(QPainter* painter, const StyleOptionGraphicsItem*)
 // GraphicsScene
 // ---------------------------------------------------------------------------
 
-GraphicsScene::GraphicsScene(QObject* parent)
-    : QObject(parent), m_hasSceneRect(false), m_focusItem(nullptr), m_mouseGrabber(nullptr),
-      m_lastMouseGrabber(nullptr), m_dragOverItem(nullptr), m_selectionChanging(0),
-      m_selectionDirty(false), m_updatePending(false), m_insertionCounter(0)
+GraphicsScene::GraphicsScene(QObject* parent):
+    QObject(parent),
+    m_hasSceneRect(false),
+    m_focusItem(nullptr),
+    m_mouseGrabber(nullptr),
+    m_lastMouseGrabber(nullptr),
+    m_dragOverItem(nullptr),
+    m_selectionChanging(0),
+    m_selectionDirty(false),
+    m_updatePending(false),
+    m_insertionCounter(0)
 {
 }
 
@@ -617,17 +658,22 @@ GraphicsScene::~GraphicsScene()
 
 void GraphicsScene::addItem(GraphicsItem* item)
 {
-    if (!item || item->m_scene == this) return;
-    if (item->m_scene) item->m_scene->removeItem(item);
-    if (item->m_parent && item->m_parent->m_scene != this) item->setParentItem(nullptr);
+    if (!item || item->m_scene == this)
+        return;
+    if (item->m_scene)
+        item->m_scene->removeItem(item);
+    if (item->m_parent && item->m_parent->m_scene != this)
+        item->setParentItem(nullptr);
     item->setSceneRecursive(this);
-    if (!item->m_parent) m_topLevelItems.append(item);
+    if (!item->m_parent)
+        m_topLevelItems.append(item);
     item->update();
 }
 
 void GraphicsScene::removeItem(GraphicsItem* item)
 {
-    if (!item || item->m_scene != this) return;
+    if (!item || item->m_scene != this)
+        return;
     item->update();
     if (item->m_parent) {
         item->setParentItem(nullptr);
@@ -636,7 +682,8 @@ void GraphicsScene::removeItem(GraphicsItem* item)
     item->setSceneRecursive(nullptr);
 }
 
-GraphicsRectItem* GraphicsScene::addRect(qreal x, qreal y, qreal w, qreal h, const QPen& pen, const QBrush& brush)
+GraphicsRectItem* GraphicsScene::addRect(qreal x, qreal y, qreal w, qreal h, const QPen& pen,
+                                         const QBrush& brush)
 {
     GraphicsRectItem* item = new GraphicsRectItem(QRectF(x, y, w, h));
     item->setPen(pen);
@@ -648,12 +695,17 @@ GraphicsRectItem* GraphicsScene::addRect(qreal x, qreal y, qreal w, qreal h, con
 void GraphicsScene::itemDestroyed(GraphicsItem* item, bool wasSelected)
 {
     m_hoverItems.removeAll(item);
-    if (m_mouseGrabber == item) m_mouseGrabber = nullptr;
-    if (m_lastMouseGrabber == item) m_lastMouseGrabber = nullptr;
-    if (m_focusItem == item) m_focusItem = nullptr;
-    if (m_dragOverItem == item) m_dragOverItem = nullptr;
+    if (m_mouseGrabber == item)
+        m_mouseGrabber = nullptr;
+    if (m_lastMouseGrabber == item)
+        m_lastMouseGrabber = nullptr;
+    if (m_focusItem == item)
+        m_focusItem = nullptr;
+    if (m_dragOverItem == item)
+        m_dragOverItem = nullptr;
     m_movingItemsInitialPositions.remove(item);
-    if (wasSelected) itemSelectionChanged();
+    if (wasSelected)
+        itemSelectionChanged();
     update();
 }
 
@@ -679,29 +731,34 @@ void GraphicsScene::collectItems(GraphicsItem* item, QList<GraphicsItem*>& list)
     QList<GraphicsItem*> behind;
     QList<GraphicsItem*> front;
     foreach (GraphicsItem* child, children) {
-        if ((child->m_flags & GraphicsItem::ItemStacksBehindParent) ||
-            (child->m_z < 0 && (child->m_flags & GraphicsItem::ItemNegativeZStacksBehindParent)))
+        if ((child->m_flags & GraphicsItem::ItemStacksBehindParent)
+            || (child->m_z < 0 && (child->m_flags & GraphicsItem::ItemNegativeZStacksBehindParent)))
             behind.append(child);
         else
             front.append(child);
     }
-    foreach (GraphicsItem* child, behind) collectItems(child, list);
+    foreach (GraphicsItem* child, behind)
+        collectItems(child, list);
     list.append(item);
-    foreach (GraphicsItem* child, front) collectItems(child, list);
+    foreach (GraphicsItem* child, front)
+        collectItems(child, list);
 }
 
 QList<GraphicsItem*> GraphicsScene::items(Qt::SortOrder order) const
 {
     QList<GraphicsItem*> result;
-    foreach (GraphicsItem* item, sortedTopLevelItems()) collectItems(item, result);
-    if (order == Qt::DescendingOrder) std::reverse(result.begin(), result.end());
+    foreach (GraphicsItem* item, sortedTopLevelItems())
+        collectItems(item, result);
+    if (order == Qt::DescendingOrder)
+        std::reverse(result.begin(), result.end());
     return result;
 }
 
-void GraphicsScene::collectItemsAt(GraphicsItem* item, const QPointF& scenePos, const QPainterPath* clip,
-                                   QList<GraphicsItem*>& list) const
+void GraphicsScene::collectItemsAt(GraphicsItem* item, const QPointF& scenePos,
+                                   const QPainterPath* clip, QList<GraphicsItem*>& list) const
 {
-    if (!item->isVisible()) return;
+    if (!item->isVisible())
+        return;
     QPointF local = item->mapFromScene(scenePos);
     bool inClip = !clip || clip->contains(scenePos);
 
@@ -709,28 +766,33 @@ void GraphicsScene::collectItemsAt(GraphicsItem* item, const QPointF& scenePos, 
     const QPainterPath* childClipPtr = clip;
     if (item->m_flags & GraphicsItem::ItemClipsChildrenToShape) {
         childClip = item->mapToScene(item->shape());
-        if (clip) childClip = childClip.intersected(*clip);
+        if (clip)
+            childClip = childClip.intersected(*clip);
         childClipPtr = &childClip;
     }
 
     QList<GraphicsItem*> behind;
     QList<GraphicsItem*> front;
     foreach (GraphicsItem* child, item->childItems()) {
-        if ((child->m_flags & GraphicsItem::ItemStacksBehindParent) ||
-            (child->m_z < 0 && (child->m_flags & GraphicsItem::ItemNegativeZStacksBehindParent)))
+        if ((child->m_flags & GraphicsItem::ItemStacksBehindParent)
+            || (child->m_z < 0 && (child->m_flags & GraphicsItem::ItemNegativeZStacksBehindParent)))
             behind.append(child);
         else
             front.append(child);
     }
-    foreach (GraphicsItem* child, behind) collectItemsAt(child, scenePos, childClipPtr, list);
-    if (inClip && item->contains(local)) list.append(item);
-    foreach (GraphicsItem* child, front) collectItemsAt(child, scenePos, childClipPtr, list);
+    foreach (GraphicsItem* child, behind)
+        collectItemsAt(child, scenePos, childClipPtr, list);
+    if (inClip && item->contains(local))
+        list.append(item);
+    foreach (GraphicsItem* child, front)
+        collectItemsAt(child, scenePos, childClipPtr, list);
 }
 
 QList<GraphicsItem*> GraphicsScene::items(const QPointF& pos) const
 {
     QList<GraphicsItem*> result;
-    foreach (GraphicsItem* item, sortedTopLevelItems()) collectItemsAt(item, pos, nullptr, result);
+    foreach (GraphicsItem* item, sortedTopLevelItems())
+        collectItemsAt(item, pos, nullptr, result);
     std::reverse(result.begin(), result.end());
     return result;
 }
@@ -741,19 +803,24 @@ QList<GraphicsItem*> GraphicsScene::items(const QRectF& rect, Qt::ItemSelectionM
     QPainterPath area;
     area.addRect(rect);
     foreach (GraphicsItem* item, items()) {
-        if (!item->isVisible()) continue;
+        if (!item->isVisible())
+            continue;
         switch (mode) {
         case Qt::ContainsItemShape:
-            if (area.contains(item->mapToScene(item->shape()))) result.append(item);
+            if (area.contains(item->mapToScene(item->shape())))
+                result.append(item);
             break;
         case Qt::IntersectsItemShape:
-            if (area.intersects(item->mapToScene(item->shape()))) result.append(item);
+            if (area.intersects(item->mapToScene(item->shape())))
+                result.append(item);
             break;
         case Qt::ContainsItemBoundingRect:
-            if (rect.contains(item->sceneBoundingRect())) result.append(item);
+            if (rect.contains(item->sceneBoundingRect()))
+                result.append(item);
             break;
         case Qt::IntersectsItemBoundingRect:
-            if (rect.intersects(item->sceneBoundingRect())) result.append(item);
+            if (rect.intersects(item->sceneBoundingRect()))
+                result.append(item);
             break;
         }
     }
@@ -766,10 +833,12 @@ GraphicsItem* GraphicsScene::itemAt(const QPointF& pos, const QTransform&) const
     return list.isEmpty() ? nullptr : list.first();
 }
 
-QList<GraphicsItem*> GraphicsScene::collidingItems(const GraphicsItem* item, Qt::ItemSelectionMode mode) const
+QList<GraphicsItem*> GraphicsScene::collidingItems(const GraphicsItem* item,
+                                                   Qt::ItemSelectionMode mode) const
 {
     QList<GraphicsItem*> result;
-    if (!item) return result;
+    if (!item)
+        return result;
     foreach (GraphicsItem* other, items()) {
         if (other != item && other->isVisible() && item->collidesWithItem(other, mode))
             result.append(other);
@@ -781,7 +850,8 @@ QList<GraphicsItem*> GraphicsScene::selectedItems() const
 {
     QList<GraphicsItem*> result;
     foreach (GraphicsItem* item, items(Qt::AscendingOrder)) {
-        if (item->m_selected) result.append(item);
+        if (item->m_selected)
+            result.append(item);
     }
     return result;
 }
@@ -789,7 +859,8 @@ QList<GraphicsItem*> GraphicsScene::selectedItems() const
 void GraphicsScene::clearSelection()
 {
     ++m_selectionChanging;
-    foreach (GraphicsItem* item, selectedItems()) item->setSelected(false);
+    foreach (GraphicsItem* item, selectedItems())
+        item->setSelected(false);
     --m_selectionChanging;
     if (m_selectionChanging == 0 && m_selectionDirty) {
         m_selectionDirty = false;
@@ -799,7 +870,8 @@ void GraphicsScene::clearSelection()
 
 QRectF GraphicsScene::sceneRect() const
 {
-    if (m_hasSceneRect) return m_sceneRect;
+    if (m_hasSceneRect)
+        return m_sceneRect;
     return itemsBoundingRect();
 }
 
@@ -816,19 +888,22 @@ void GraphicsScene::setSceneRect(const QRectF& rect)
 QRectF GraphicsScene::itemsBoundingRect() const
 {
     QRectF result;
-    foreach (GraphicsItem* item, items()) result |= item->sceneBoundingRect();
+    foreach (GraphicsItem* item, items())
+        result |= item->sceneBoundingRect();
     return result;
 }
 
 void GraphicsScene::setFocusItem(GraphicsItem* item)
 {
-    if (item && item->m_scene != this) return;
+    if (item && item->m_scene != this)
+        return;
     m_focusItem = item;
 }
 
 void GraphicsScene::update(const QRectF&)
 {
-    if (m_updatePending) return;
+    if (m_updatePending)
+        return;
     m_updatePending = true;
     QTimer::singleShot(0, this, [this]() {
         m_updatePending = false;
@@ -836,18 +911,20 @@ void GraphicsScene::update(const QRectF&)
     });
 }
 
-void GraphicsScene::drawItem(QPainter* painter, GraphicsItem* item, const QTransform& parentSceneTransform,
+void GraphicsScene::drawItem(QPainter* painter, GraphicsItem* item,
+                             const QTransform& parentSceneTransform,
                              const QTransform& viewTransform)
 {
-    if (!item->m_visible) return;
+    if (!item->m_visible)
+        return;
     QTransform itemSceneTransform = item->transform() * parentSceneTransform;
     QTransform deviceTransform = itemSceneTransform * viewTransform;
 
     QList<GraphicsItem*> behind;
     QList<GraphicsItem*> front;
     foreach (GraphicsItem* child, item->childItems()) {
-        if ((child->m_flags & GraphicsItem::ItemStacksBehindParent) ||
-            (child->m_z < 0 && (child->m_flags & GraphicsItem::ItemNegativeZStacksBehindParent)))
+        if ((child->m_flags & GraphicsItem::ItemStacksBehindParent)
+            || (child->m_z < 0 && (child->m_flags & GraphicsItem::ItemNegativeZStacksBehindParent)))
             behind.append(child);
         else
             front.append(child);
@@ -856,30 +933,37 @@ void GraphicsScene::drawItem(QPainter* painter, GraphicsItem* item, const QTrans
     painter->save();
     painter->setWorldTransform(deviceTransform);
     bool clipChildren = item->m_flags & GraphicsItem::ItemClipsChildrenToShape;
-    if (clipChildren) painter->setClipPath(item->shape(), Qt::IntersectClip);
+    if (clipChildren)
+        painter->setClipPath(item->shape(), Qt::IntersectClip);
 
-    foreach (GraphicsItem* child, behind) drawItem(painter, child, itemSceneTransform, viewTransform);
+    foreach (GraphicsItem* child, behind)
+        drawItem(painter, child, itemSceneTransform, viewTransform);
 
     StyleOptionGraphicsItem option;
     option.exposedRect = item->boundingRect();
     option.rect = option.exposedRect.toAlignedRect();
-    if (item->m_selected) option.state |= StyleOptionGraphicsItem::State_Selected;
-    if (m_hoverItems.contains(item)) option.state |= StyleOptionGraphicsItem::State_MouseOver;
+    if (item->m_selected)
+        option.state |= StyleOptionGraphicsItem::State_Selected;
+    if (m_hoverItems.contains(item))
+        option.state |= StyleOptionGraphicsItem::State_MouseOver;
 
     painter->save();
     painter->setWorldTransform(deviceTransform);
-    if (item->m_flags & GraphicsItem::ItemClipsToShape) painter->setClipPath(item->shape(), Qt::IntersectClip);
+    if (item->m_flags & GraphicsItem::ItemClipsToShape)
+        painter->setClipPath(item->shape(), Qt::IntersectClip);
     item->paint(painter, &option);
     painter->restore();
 
-    foreach (GraphicsItem* child, front) drawItem(painter, child, itemSceneTransform, viewTransform);
+    foreach (GraphicsItem* child, front)
+        drawItem(painter, child, itemSceneTransform, viewTransform);
     painter->restore();
 }
 
 void GraphicsScene::render(QPainter* painter, const QRectF& target, const QRectF& source,
                            Qt::AspectRatioMode aspectRatioMode)
 {
-    if (!painter) return;
+    if (!painter)
+        return;
     QRectF sourceRect = source.isNull() ? sceneRect() : source;
     QRectF targetRect = target;
     if (targetRect.isNull()) {
@@ -888,7 +972,8 @@ void GraphicsScene::render(QPainter* painter, const QRectF& target, const QRectF
         else
             targetRect = sourceRect;
     }
-    if (sourceRect.isEmpty() || targetRect.isEmpty()) return;
+    if (sourceRect.isEmpty() || targetRect.isEmpty())
+        return;
 
     qreal xratio = targetRect.width() / sourceRect.width();
     qreal yratio = targetRect.height() / sourceRect.height();
@@ -923,8 +1008,9 @@ void GraphicsScene::render(QPainter* painter, const QRectF& target, const QRectF
 
 // ----- input dispatch -------------------------------------------------------
 
-void GraphicsScene::prepareMouseEvent(GraphicsSceneMouseEvent& event, const QPointF& scenePos, const QPointF& screenPos,
-                                      Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers)
+void GraphicsScene::prepareMouseEvent(GraphicsSceneMouseEvent& event, const QPointF& scenePos,
+                                      const QPointF& screenPos, Qt::MouseButton button,
+                                      Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers)
 {
     event.setScenePos(scenePos);
     event.setScreenPos(screenPos);
@@ -940,12 +1026,14 @@ static void mapMouseEventToItem(GraphicsSceneMouseEvent* event, GraphicsItem* it
 {
     event->setPos(item->mapFromScene(event->scenePos()));
     event->setLastPos(item->mapFromScene(event->lastScenePos()));
-    foreach (Qt::MouseButton b, QList<Qt::MouseButton>() << Qt::LeftButton << Qt::RightButton << Qt::MiddleButton)
+    foreach (Qt::MouseButton b,
+             QList<Qt::MouseButton>() << Qt::LeftButton << Qt::RightButton << Qt::MiddleButton)
         event->setButtonDownPos(b, item->mapFromScene(event->buttonDownScenePos(b)));
 }
 
-void GraphicsScene::handleMousePress(const QPointF& scenePos, const QPointF& screenPos, Qt::MouseButton button,
-                                     Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers)
+void GraphicsScene::handleMousePress(const QPointF& scenePos, const QPointF& screenPos,
+                                     Qt::MouseButton button, Qt::MouseButtons buttons,
+                                     Qt::KeyboardModifiers modifiers)
 {
     m_buttonDownScenePos[button] = scenePos;
     m_buttonDownScreenPos[button] = screenPos;
@@ -966,19 +1054,22 @@ void GraphicsScene::handleMouseMove(const QPointF& scenePos, const QPointF& scre
     m_lastScreenPos = screenPos;
 }
 
-void GraphicsScene::handleMouseRelease(const QPointF& scenePos, const QPointF& screenPos, Qt::MouseButton button,
-                                       Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers)
+void GraphicsScene::handleMouseRelease(const QPointF& scenePos, const QPointF& screenPos,
+                                       Qt::MouseButton button, Qt::MouseButtons buttons,
+                                       Qt::KeyboardModifiers modifiers)
 {
     GraphicsSceneMouseEvent event;
     prepareMouseEvent(event, scenePos, screenPos, button, buttons, modifiers);
     mouseReleaseEvent(&event);
     m_lastScenePos = scenePos;
     m_lastScreenPos = screenPos;
-    if (buttons == Qt::NoButton) dispatchHover(scenePos, screenPos, modifiers);
+    if (buttons == Qt::NoButton)
+        dispatchHover(scenePos, screenPos, modifiers);
 }
 
-void GraphicsScene::handleMouseDoubleClick(const QPointF& scenePos, const QPointF& screenPos, Qt::MouseButton button,
-                                           Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers)
+void GraphicsScene::handleMouseDoubleClick(const QPointF& scenePos, const QPointF& screenPos,
+                                           Qt::MouseButton button, Qt::MouseButtons buttons,
+                                           Qt::KeyboardModifiers modifiers)
 {
     m_buttonDownScenePos[button] = scenePos;
     m_buttonDownScreenPos[button] = screenPos;
@@ -994,7 +1085,8 @@ void GraphicsScene::handleHoverLeave()
     setHoverItems(QList<GraphicsItem*>(), m_lastScenePos, m_lastScreenPos, Qt::NoModifier);
 }
 
-void GraphicsScene::handleContextMenu(const QPointF& scenePos, const QPoint& screenPos, Qt::KeyboardModifiers modifiers)
+void GraphicsScene::handleContextMenu(const QPointF& scenePos, const QPoint& screenPos,
+                                      Qt::KeyboardModifiers modifiers)
 {
     GraphicsSceneContextMenuEvent event;
     event.setScenePos(scenePos);
@@ -1003,15 +1095,9 @@ void GraphicsScene::handleContextMenu(const QPointF& scenePos, const QPoint& scr
     contextMenuEvent(&event);
 }
 
-void GraphicsScene::handleKeyPress(QKeyEvent* event)
-{
-    keyPressEvent(event);
-}
+void GraphicsScene::handleKeyPress(QKeyEvent* event) { keyPressEvent(event); }
 
-void GraphicsScene::handleKeyRelease(QKeyEvent* event)
-{
-    keyReleaseEvent(event);
-}
+void GraphicsScene::handleKeyRelease(QKeyEvent* event) { keyReleaseEvent(event); }
 
 bool GraphicsScene::handleDragEnter(const QPointF& scenePos, const QMimeData* mimeData)
 {
@@ -1050,16 +1136,19 @@ bool GraphicsScene::handleDrop(const QPointF& scenePos, const QMimeData* mimeDat
 
 QCursor GraphicsScene::cursorAt(const QPointF& scenePos) const
 {
-    if (m_mouseGrabber && m_mouseGrabber->hasCursor()) return m_mouseGrabber->cursor();
+    if (m_mouseGrabber && m_mouseGrabber->hasCursor())
+        return m_mouseGrabber->cursor();
     foreach (GraphicsItem* item, items(scenePos)) {
-        if (item->hasCursor()) return item->cursor();
+        if (item->hasCursor())
+            return item->cursor();
     }
     return QCursor(Qt::ArrowCursor);
 }
 
 void GraphicsScene::showPopupMenu(PopupMenu* menu, const QPointF& scenePos)
 {
-    if (!menu) return;
+    if (!menu)
+        return;
     menu->setParent(this);
     if (isSignalConnected(QMetaMethod::fromSignal(&GraphicsScene::popupMenuRequested))) {
         emit popupMenuRequested(menu, scenePos);
@@ -1072,8 +1161,10 @@ void GraphicsScene::pressHandler(GraphicsSceneMouseEvent* event, bool doubleClic
 {
     if (m_mouseGrabber) {
         mapMouseEventToItem(event, m_mouseGrabber);
-        if (doubleClick) m_mouseGrabber->mouseDoubleClickEvent(event);
-        else m_mouseGrabber->mousePressEvent(event);
+        if (doubleClick)
+            m_mouseGrabber->mouseDoubleClickEvent(event);
+        else
+            m_mouseGrabber->mousePressEvent(event);
         return;
     }
 
@@ -1087,11 +1178,13 @@ void GraphicsScene::pressHandler(GraphicsSceneMouseEvent* event, bool doubleClic
             break;
         }
     }
-    if (!focusSet) setFocusItem(nullptr);
+    if (!focusSet)
+        setFocusItem(nullptr);
 
     m_movingItemsInitialPositions.clear();
     foreach (GraphicsItem* item, candidates) {
-        if (!(item->acceptedMouseButtons() & event->button())) continue;
+        if (!(item->acceptedMouseButtons() & event->button()))
+            continue;
         m_mouseGrabber = item;
         event->accept();
         mapMouseEventToItem(event, item);
@@ -1117,14 +1210,12 @@ void GraphicsScene::pressHandler(GraphicsSceneMouseEvent* event, bool doubleClic
     if (!event->isAccepted() || candidates.isEmpty()) {
         m_mouseGrabber = nullptr;
         event->ignore();
-        if (!(event->modifiers() & Qt::ControlModifier)) clearSelection();
+        if (!(event->modifiers() & Qt::ControlModifier))
+            clearSelection();
     }
 }
 
-void GraphicsScene::mousePressEvent(GraphicsSceneMouseEvent* event)
-{
-    pressHandler(event, false);
-}
+void GraphicsScene::mousePressEvent(GraphicsSceneMouseEvent* event) { pressHandler(event, false); }
 
 void GraphicsScene::mouseDoubleClickEvent(GraphicsSceneMouseEvent* event)
 {
@@ -1134,7 +1225,8 @@ void GraphicsScene::mouseDoubleClickEvent(GraphicsSceneMouseEvent* event)
 void GraphicsScene::mouseMoveEvent(GraphicsSceneMouseEvent* event)
 {
     if (!m_mouseGrabber) {
-        if (event->buttons() != Qt::NoButton) return;
+        if (event->buttons() != Qt::NoButton)
+            return;
         dispatchHover(event->scenePos(), event->screenPos(), event->modifiers());
         return;
     }
@@ -1165,7 +1257,8 @@ void GraphicsScene::contextMenuEvent(GraphicsSceneContextMenuEvent* event)
         event->setPos(item->mapFromScene(event->scenePos()));
         event->accept();
         item->contextMenuEvent(event);
-        if (event->isAccepted()) break;
+        if (event->isAccepted())
+            break;
     }
 }
 
@@ -1176,7 +1269,8 @@ void GraphicsScene::keyPressEvent(QKeyEvent* event)
     while (item) {
         event->accept();
         item->keyPressEvent(event);
-        if (event->isAccepted()) return;
+        if (event->isAccepted())
+            return;
         item = item->parentItem();
     }
 }
@@ -1188,7 +1282,8 @@ void GraphicsScene::keyReleaseEvent(QKeyEvent* event)
     while (item) {
         event->accept();
         item->keyReleaseEvent(event);
-        if (event->isAccepted()) return;
+        if (event->isAccepted())
+            return;
         item = item->parentItem();
     }
 }
@@ -1203,17 +1298,20 @@ void GraphicsScene::dragMoveEvent(GraphicsSceneDragDropEvent* event)
 {
     event->ignore();
     foreach (GraphicsItem* item, items(event->scenePos())) {
-        if (!item->acceptDrops()) continue;
+        if (!item->acceptDrops())
+            continue;
         event->setPos(item->mapFromScene(event->scenePos()));
         if (item != m_dragOverItem) {
-            if (m_dragOverItem) m_dragOverItem->dragLeaveEvent(event);
+            if (m_dragOverItem)
+                m_dragOverItem->dragLeaveEvent(event);
             m_dragOverItem = item;
             event->accept();
             item->dragEnterEvent(event);
         }
         event->accept();
         item->dragMoveEvent(event);
-        if (event->isAccepted()) return;
+        if (event->isAccepted())
+            return;
     }
     if (m_dragOverItem) {
         m_dragOverItem->dragLeaveEvent(event);
@@ -1241,7 +1339,8 @@ void GraphicsScene::dropEvent(GraphicsSceneDragDropEvent* event)
     }
 }
 
-void GraphicsScene::dispatchHover(const QPointF& scenePos, const QPointF& screenPos, Qt::KeyboardModifiers modifiers)
+void GraphicsScene::dispatchHover(const QPointF& scenePos, const QPointF& screenPos,
+                                  Qt::KeyboardModifiers modifiers)
 {
     GraphicsItem* top = nullptr;
     foreach (GraphicsItem* item, items(scenePos)) {
@@ -1253,7 +1352,8 @@ void GraphicsScene::dispatchHover(const QPointF& scenePos, const QPointF& screen
     QList<GraphicsItem*> chain;
     GraphicsItem* item = top;
     while (item) {
-        if (item->acceptHoverEvents()) chain.prepend(item);
+        if (item->acceptHoverEvents())
+            chain.prepend(item);
         item = item->parentItem();
     }
     setHoverItems(chain, scenePos, screenPos, modifiers);
@@ -1295,7 +1395,8 @@ static bool movableAncestorIsSelected(const GraphicsItem* item)
 {
     const GraphicsItem* parent = item->parentItem();
     while (parent) {
-        if ((parent->flags() & GraphicsItem::ItemIsMovable) && parent->isSelected()) return true;
+        if ((parent->flags() & GraphicsItem::ItemIsMovable) && parent->isSelected())
+            return true;
         parent = parent->parentItem();
     }
     return false;
@@ -1304,9 +1405,13 @@ static bool movableAncestorIsSelected(const GraphicsItem* item)
 void GraphicsScene::moveSelectedItems(GraphicsItem* source, GraphicsSceneMouseEvent* event)
 {
     QList<GraphicsItem*> toMove;
-    if (source->isSelected()) toMove = selectedItems(); else toMove << source;
+    if (source->isSelected())
+        toMove = selectedItems();
+    else
+        toMove << source;
     foreach (GraphicsItem* item, toMove) {
-        if (!(item->flags() & GraphicsItem::ItemIsMovable) || movableAncestorIsSelected(item)) continue;
+        if (!(item->flags() & GraphicsItem::ItemIsMovable) || movableAncestorIsSelected(item))
+            continue;
         if (!m_movingItemsInitialPositions.contains(item))
             m_movingItemsInitialPositions.insert(item, item->pos());
         GraphicsItem* parent = item->parentItem();

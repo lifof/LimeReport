@@ -21,6 +21,7 @@
 #include <QObject>
 #include <QColor>
 #include <QPainter>
+#include <QObject>
 
 #include "qzint_global.h"
 #include "zint.h"

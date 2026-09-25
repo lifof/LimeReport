@@ -2,8 +2,8 @@
 #define LRQUICKPROPERTYMODEL_H
 
 #include <QAbstractListModel>
-#include <QPointer>
 #include <QMetaProperty>
+#include <QPointer>
 #include <QUrl>
 #include <QtQml/qqmlregistration.h>
 
@@ -16,8 +16,7 @@ class DataSourceManager;
  * object(s) to the QML property inspector. With several objects selected,
  * only common properties are listed and edits are applied to all of them.
  */
-class QuickPropertyModel : public QAbstractListModel
-{
+class QuickPropertyModel: public QAbstractListModel {
     Q_OBJECT
     QML_NAMED_ELEMENT(ReportPropertyModel)
     QML_UNCREATABLE("Provided by ReportDesignerController")
@@ -52,8 +51,8 @@ public:
 
     Q_INVOKABLE bool setValue(int row, const QVariant& value);
     Q_INVOKABLE bool setFlag(int row, int flag, bool on);
-    Q_INVOKABLE bool setFontValue(int row, const QString& family, qreal pointSize, bool bold, bool italic,
-                                  bool underline, bool strikeOut);
+    Q_INVOKABLE bool setFontValue(int row, const QString& family, qreal pointSize, bool bold,
+                                  bool italic, bool underline, bool strikeOut);
     Q_INVOKABLE bool setRectValue(int row, qreal x, qreal y, qreal width, qreal height);
     Q_INVOKABLE bool loadImage(int row, const QUrl& fileUrl);
     Q_INVOKABLE bool clearValue(int row);

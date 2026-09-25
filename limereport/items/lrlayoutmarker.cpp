@@ -1,36 +1,41 @@
 #include "lrlayoutmarker.h"
 
-namespace LimeReport{
+namespace LimeReport {
 
-LayoutMarker::LayoutMarker(BaseDesignIntf* layout, GraphicsItem *parent)
-    :GraphicsItem(parent), m_rect(0,0,30,30), m_color(Qt::red), m_layout(layout){
+LayoutMarker::LayoutMarker(BaseDesignIntf* layout, GraphicsItem* parent):
+    GraphicsItem(parent),
+    m_rect(0, 0, 30, 30),
+    m_color(Qt::red),
+    m_layout(layout)
+{
     setFlag(GraphicsItem::ItemIsMovable);
 }
 
-void LayoutMarker::paint(QPainter *painter, const StyleOptionGraphicsItem *)
+void LayoutMarker::paint(QPainter* painter, const StyleOptionGraphicsItem*)
 {
     painter->save();
     painter->setOpacity(Const::LAYOUT_MARKER_OPACITY);
-    painter->fillRect(boundingRect(),m_color);
+    painter->fillRect(boundingRect(), m_color);
 
     painter->setRenderHint(QPainter::Antialiasing);
-    qreal size = (boundingRect().width()<boundingRect().height()) ? boundingRect().width() : boundingRect().height();
+    qreal size = (boundingRect().width() < boundingRect().height()) ? boundingRect().width()
+                                                                    : boundingRect().height();
 
-    if (m_layout->isSelected()){
+    if (m_layout->isSelected()) {
         painter->setOpacity(1);
-        QRectF r = QRectF(0,0,size,size);
+        QRectF r = QRectF(0, 0, size, size);
         painter->setBrush(Qt::white);
         painter->setPen(Qt::white);
-        painter->drawEllipse(r.adjusted(5,5,-5,-5));
+        painter->drawEllipse(r.adjusted(5, 5, -5, -5));
         painter->setBrush(m_color);
-        painter->drawEllipse(r.adjusted(7,7,-7,-7));
+        painter->drawEllipse(r.adjusted(7, 7, -7, -7));
     }
     painter->restore();
 }
 
 void LayoutMarker::setHeight(qreal height)
 {
-    if (m_rect.height()!=height){
+    if (m_rect.height() != height) {
         prepareGeometryChange();
         m_rect.setHeight(height);
     }
@@ -38,7 +43,7 @@ void LayoutMarker::setHeight(qreal height)
 
 void LayoutMarker::setWidth(qreal width)
 {
-    if (m_rect.width()!=width){
+    if (m_rect.width() != width) {
         prepareGeometryChange();
         m_rect.setWidth(width);
     }
@@ -46,22 +51,21 @@ void LayoutMarker::setWidth(qreal width)
 
 void LayoutMarker::setColor(QColor color)
 {
-    if (m_color!=color){
+    if (m_color != color) {
         m_color = color;
         update(boundingRect());
     }
 }
 
-void LayoutMarker::mousePressEvent(GraphicsSceneMouseEvent *event)
+void LayoutMarker::mousePressEvent(GraphicsSceneMouseEvent* event)
 {
-    if (event->button()==Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton) {
         if (!(event->modifiers() & Qt::ControlModifier))
             m_layout->scene()->clearSelection();
         m_layout->setSelected(true);
-        //m_layout->setChildVisibility(false);
-        update(0,0,boundingRect().width(),boundingRect().width());
+        // m_layout->setChildVisibility(false);
+        update(0, 0, boundingRect().width(), boundingRect().width());
     }
 }
-
 
 } // namespace LimeReport

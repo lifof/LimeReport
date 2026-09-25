@@ -1,22 +1,30 @@
 #include "lrmessagehub.h"
-#include <QDebug>
+
 #include <QCoreApplication>
+#include <QDebug>
 
 namespace LimeReport {
 
 MessageHub* MessageHub::instance()
 {
     static MessageHub* hub = nullptr;
-    if (!hub) hub = new MessageHub(QCoreApplication::instance());
+    if (!hub)
+        hub = new MessageHub(QCoreApplication::instance());
     return hub;
 }
 
 void MessageHub::post(Severity severity, const QString& title, const QString& text)
 {
     switch (severity) {
-    case Information: qInfo().noquote() << title << ":" << text; break;
-    case Warning: qWarning().noquote() << title << ":" << text; break;
-    case Critical: qCritical().noquote() << title << ":" << text; break;
+    case Information:
+        qInfo().noquote() << title << ":" << text;
+        break;
+    case Warning:
+        qWarning().noquote() << title << ":" << text;
+        break;
+    case Critical:
+        qCritical().noquote() << title << ":" << text;
+        break;
     }
     emit messagePosted(severity, title, text);
 }

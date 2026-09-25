@@ -1,27 +1,25 @@
 #ifndef LRQUICKREGISTRATION_H
 #define LRQUICKREGISTRATION_H
 
-#include <QObject>
-#include <QtQml/qqmlregistration.h>
-#include <QQmlEngine>
-#include <QJSEngine>
-
-#include "lrreportengine.h"
 #include "lrmessagehub.h"
+#include "lrreportengine.h"
+
+#include <QJSEngine>
+#include <QObject>
+#include <QQmlEngine>
+#include <QtQml/qqmlregistration.h>
 
 namespace LimeReport {
 
 // Makes LimeReport::ReportEngine creatable from QML as "ReportEngine".
-struct QuickForeignReportEngine
-{
+struct QuickForeignReportEngine {
     Q_GADGET
     QML_FOREIGN(LimeReport::ReportEngine)
     QML_NAMED_ELEMENT(ReportEngine)
 };
 
 // Engine notifications (errors, warnings) as a QML singleton "ReportMessages".
-struct QuickForeignMessageHub
-{
+struct QuickForeignMessageHub {
     Q_GADGET
     QML_FOREIGN(LimeReport::MessageHub)
     QML_NAMED_ELEMENT(ReportMessages)

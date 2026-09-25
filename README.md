@@ -1,5 +1,5 @@
 
-# LimeReport v1.5.87 [![Build Status](https://app.travis-ci.com/fralx/LimeReport.svg?branch=master)](https://app.travis-ci.com/fralx/LimeReport) [![Build status](https://ci.appveyor.com/api/projects/status/wna5429pix7ilcmo/branch/master?svg=true)](https://ci.appveyor.com/project/fralx/limereport/branch/master) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/bc31412ea4814f30825b5ed3723e9a70)](https://app.codacy.com/app/fralx/LimeReport?utm_source=github.com&utm_medium=referral&utm_content=fralx/LimeReport&utm_campaign=Badge_Grade_Dashboard)
+# LimeReport v2.0.0 (Qt Quick) ![Cmake Build Status](https://github.com/fralx/limereport/actions/workflows/cmake.yml/badge.svg)
 
 ## Official LimeReport web site [http://limereport.ru](http://limereport.ru)
 
@@ -60,6 +60,27 @@ Options: `LIMEREPORT_STATIC`, `ENABLE_ZINT`, `LIMEREPORT_BUILD_DESIGNER`,
 `LIMEREPORT_BUILD_DEMO`, `LIMEREPORT_BUILD_TESTS`.
 
 ### How to use it
+
+To use it in your CMake project without installing it, either add it as a
+subdirectory:
+
+```cmake
+add_subdirectory(LimeReport)
+target_link_libraries(myapp PRIVATE limereport-qt6)
+```
+
+or fetch it:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  LimeReport
+  GIT_REPOSITORY https://github.com/fralx/LimeReport.git
+  GIT_TAG        sha-of-the-commit
+)
+FetchContent_MakeAvailable(LimeReport)
+target_link_libraries(myapp PRIVATE limereport-qt6)
+```
 
 From C++ (a `QGuiApplication` is enough):
 

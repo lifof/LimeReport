@@ -1,26 +1,46 @@
-#include <QtTest>
-#include <QPainter>
-#include <QImage>
-#include <QSignalSpy>
-#include <QKeyEvent>
-
 #include "lrgraphicsscene.h"
+
+#include <QImage>
+#include <QKeyEvent>
+#include <QPainter>
+#include <QSignalSpy>
+#include <QtTest>
 
 using namespace LimeReport;
 
-class RectItem : public GraphicsItem {
+class RectItem: public GraphicsItem {
 public:
-    explicit RectItem(const QRectF& r, GraphicsItem* parent = nullptr, QColor c = Qt::red)
-        : GraphicsItem(parent), rect(r), color(c) {}
+    explicit RectItem(const QRectF& r, GraphicsItem* parent = nullptr, QColor c = Qt::red):
+        GraphicsItem(parent),
+        rect(r),
+        color(c)
+    {
+    }
     QRectF boundingRect() const override { return rect; }
-    void paint(QPainter* painter, const StyleOptionGraphicsItem*) override { painter->fillRect(rect, color); }
-    QVariant itemChange(GraphicsItemChange change, const QVariant& value) override {
+    void paint(QPainter* painter, const StyleOptionGraphicsItem*) override
+    {
+        painter->fillRect(rect, color);
+    }
+    QVariant itemChange(GraphicsItemChange change, const QVariant& value) override
+    {
         changes.append(change);
         return GraphicsItem::itemChange(change, value);
     }
-    void mousePressEvent(GraphicsSceneMouseEvent* event) override { ++presses; GraphicsItem::mousePressEvent(event); }
-    void hoverEnterEvent(GraphicsSceneHoverEvent* event) override { ++hoverEnters; GraphicsItem::hoverEnterEvent(event); }
-    void hoverLeaveEvent(GraphicsSceneHoverEvent* event) override { ++hoverLeaves; GraphicsItem::hoverLeaveEvent(event); }
+    void mousePressEvent(GraphicsSceneMouseEvent* event) override
+    {
+        ++presses;
+        GraphicsItem::mousePressEvent(event);
+    }
+    void hoverEnterEvent(GraphicsSceneHoverEvent* event) override
+    {
+        ++hoverEnters;
+        GraphicsItem::hoverEnterEvent(event);
+    }
+    void hoverLeaveEvent(GraphicsSceneHoverEvent* event) override
+    {
+        ++hoverLeaves;
+        GraphicsItem::hoverLeaveEvent(event);
+    }
     QRectF rect;
     QColor color;
     QList<int> changes;
@@ -29,8 +49,7 @@ public:
     int hoverLeaves = 0;
 };
 
-class GraphicsSceneTest : public QObject
-{
+class GraphicsSceneTest: public QObject {
     Q_OBJECT
 private Q_SLOTS:
     void hierarchyAndMapping();
@@ -107,16 +126,22 @@ void GraphicsSceneTest::selection()
     QCOMPARE(spy.count(), 1);
 
     // click on b replaces the selection, ctrl-click extends it
-    scene.handleMousePress(QPointF(25, 5), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-    scene.handleMouseRelease(QPointF(25, 5), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    scene.handleMousePress(QPointF(25, 5), QPointF(), Qt::LeftButton, Qt::LeftButton,
+                           Qt::NoModifier);
+    scene.handleMouseRelease(QPointF(25, 5), QPointF(), Qt::LeftButton, Qt::NoButton,
+                             Qt::NoModifier);
     QCOMPARE(scene.selectedItems(), QList<GraphicsItem*>() << b);
-    scene.handleMousePress(QPointF(5, 5), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::ControlModifier);
-    scene.handleMouseRelease(QPointF(5, 5), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::ControlModifier);
+    scene.handleMousePress(QPointF(5, 5), QPointF(), Qt::LeftButton, Qt::LeftButton,
+                           Qt::ControlModifier);
+    scene.handleMouseRelease(QPointF(5, 5), QPointF(), Qt::LeftButton, Qt::NoButton,
+                             Qt::ControlModifier);
     QCOMPARE(scene.selectedItems().count(), 2);
 
     // click on empty space clears it
-    scene.handleMousePress(QPointF(500, 500), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-    scene.handleMouseRelease(QPointF(500, 500), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    scene.handleMousePress(QPointF(500, 500), QPointF(), Qt::LeftButton, Qt::LeftButton,
+                           Qt::NoModifier);
+    scene.handleMouseRelease(QPointF(500, 500), QPointF(), Qt::LeftButton, Qt::NoButton,
+                             Qt::NoModifier);
     QVERIFY(scene.selectedItems().isEmpty());
 }
 
@@ -128,15 +153,17 @@ void GraphicsSceneTest::mouseMoveMovesSelectedItems()
     b->setPos(50, 0);
     scene.addItem(a);
     scene.addItem(b);
-    for (RectItem* item : {a, b}) {
+    for (RectItem* item : { a, b }) {
         item->setFlag(GraphicsItem::ItemIsSelectable);
         item->setFlag(GraphicsItem::ItemIsMovable);
         item->setSelected(true);
     }
-    scene.handleMousePress(QPointF(5, 5), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    scene.handleMousePress(QPointF(5, 5), QPointF(), Qt::LeftButton, Qt::LeftButton,
+                           Qt::NoModifier);
     QCOMPARE(a->presses, 1);
     scene.handleMouseMove(QPointF(15, 25), QPointF(), Qt::LeftButton, Qt::NoModifier);
-    scene.handleMouseRelease(QPointF(15, 25), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+    scene.handleMouseRelease(QPointF(15, 25), QPointF(), Qt::LeftButton, Qt::NoButton,
+                             Qt::NoModifier);
     QCOMPARE(a->pos(), QPointF(10, 20));
     QCOMPARE(b->pos(), QPointF(60, 20));
 }

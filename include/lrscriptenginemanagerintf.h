@@ -31,32 +31,30 @@
 #define LRSCRIPTENGINEMANAGERINTF_H
 #include "qglobal.h"
 
-
 #include <QQmlEngine>
 
-namespace LimeReport{
+namespace LimeReport {
 
-    typedef QJSEngine ScriptEngineType;
-    typedef QJSValue ScriptValueType;
-    template <typename T>
-    static inline QJSValue getJSValue(QJSEngine &e, T *p)
-    {
-        QJSValue res = e.newQObject(p);
-        QQmlEngine::setObjectOwnership(p, QQmlEngine::CppOwnership);
-        return res;
-    }
+typedef QJSEngine ScriptEngineType;
+typedef QJSValue ScriptValueType;
+template <typename T> static inline QJSValue getJSValue(QJSEngine& e, T* p)
+{
+    QJSValue res = e.newQObject(p);
+    QQmlEngine::setObjectOwnership(p, QQmlEngine::CppOwnership);
+    return res;
+}
 
-class IScriptEngineManager{
+class IScriptEngineManager {
 public:
     virtual ScriptEngineType* scriptEngine() = 0;
-    virtual bool addFunction(const QString &name, const QString& script,
-                             const QString &category="", const QString &description="") = 0;
+    virtual bool addFunction(const QString& name, const QString& script,
+                             const QString& category = "", const QString& description = "")
+        = 0;
     virtual const QString& lastError() const = 0;
     virtual ScriptValueType moveQObjectToScript(QObject* object, const QString objectName) = 0;
-    virtual ~IScriptEngineManager(){}
-
+    virtual ~IScriptEngineManager() { }
 };
 
-} //namespace LimeReport
+} // namespace LimeReport
 
 #endif // LRSCRIPTENGINEMANAGERINTF_H

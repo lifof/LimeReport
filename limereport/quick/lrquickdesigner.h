@@ -24,13 +24,13 @@ class QuickObjectTreeModel;
  * commands, the property / data / object models and file handling of a
  * ReportEngine to Qt Quick.
  */
-class QuickReportDesigner : public QObject
-{
+class QuickReportDesigner: public QObject {
     Q_OBJECT
     QML_NAMED_ELEMENT(ReportDesignerController)
     Q_PROPERTY(QObject* engine READ engineObject WRITE setEngineObject NOTIFY engineChanged)
     Q_PROPERTY(QStringList pageNames READ pageNames NOTIFY pagesChanged)
-    Q_PROPERTY(int currentPageIndex READ currentPageIndex WRITE setCurrentPageIndex NOTIFY currentPageChanged)
+    Q_PROPERTY(int currentPageIndex READ currentPageIndex WRITE setCurrentPageIndex NOTIFY
+                   currentPageChanged)
     Q_PROPERTY(QObject* scene READ scene NOTIFY currentPageChanged)
     Q_PROPERTY(QObject* propertyModel READ propertyModel CONSTANT)
     Q_PROPERTY(QObject* dataModel READ dataModel CONSTANT)
@@ -46,10 +46,12 @@ class QuickReportDesigner : public QObject
     Q_PROPERTY(QVariantList bandTypes READ bandTypes NOTIFY selectionChanged)
     Q_PROPERTY(QString insertItemType READ insertItemType NOTIFY insertModeChanged)
     Q_PROPERTY(QString script READ script WRITE setScript NOTIFY scriptChanged)
-    Q_PROPERTY(bool magneticMovement READ magneticMovement WRITE setMagneticMovement NOTIFY settingsChanged)
+    Q_PROPERTY(bool magneticMovement READ magneticMovement WRITE setMagneticMovement NOTIFY
+                   settingsChanged)
     Q_PROPERTY(bool useGrid READ useGrid WRITE setUseGrid NOTIFY settingsChanged)
     Q_PROPERTY(int gridStep READ gridStep WRITE setGridStep NOTIFY settingsChanged)
-    Q_PROPERTY(bool layoutEditMode READ layoutEditMode WRITE setLayoutEditMode NOTIFY settingsChanged)
+    Q_PROPERTY(
+        bool layoutEditMode READ layoutEditMode WRITE setLayoutEditMode NOTIFY settingsChanged)
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
     Q_PROPERTY(QStringList sqlDrivers READ sqlDrivers CONSTANT)
     Q_PROPERTY(QStringList connectionNames READ connectionNames NOTIFY dataChanged)

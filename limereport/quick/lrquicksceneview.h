@@ -1,11 +1,11 @@
 #ifndef LRQUICKSCENEVIEW_H
 #define LRQUICKSCENEVIEW_H
 
-#include <QQuickPaintedItem>
-#include <QPointer>
-#include <QtQml/qqmlregistration.h>
-
 #include "lrgraphicsscene.h"
+
+#include <QPointer>
+#include <QQuickPaintedItem>
+#include <QtQml/qqmlregistration.h>
 
 namespace LimeReport {
 
@@ -19,8 +19,7 @@ namespace LimeReport {
  * pixels, i.e. already multiplied by zoom). Put it next to a Flickable or
  * ScrollBars and bind contentX/contentY to scroll.
  */
-class SceneView : public QQuickPaintedItem
-{
+class SceneView: public QQuickPaintedItem {
     Q_OBJECT
     QML_NAMED_ELEMENT(ReportSceneView)
     Q_PROPERTY(QObject* scene READ sceneObject WRITE setSceneObject NOTIFY sceneChanged)
@@ -30,7 +29,8 @@ class SceneView : public QQuickPaintedItem
     Q_PROPERTY(qreal contentWidth READ contentWidth NOTIFY contentSizeChanged)
     Q_PROPERTY(qreal contentHeight READ contentHeight NOTIFY contentSizeChanged)
     Q_PROPERTY(bool interactive READ interactive WRITE setInteractive NOTIFY interactiveChanged)
-    Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY backgroundColorChanged)
+    Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY
+                   backgroundColorChanged)
     Q_PROPERTY(QRectF sceneRect READ sceneRect NOTIFY contentSizeChanged)
 public:
     explicit SceneView(QQuickItem* parent = nullptr);

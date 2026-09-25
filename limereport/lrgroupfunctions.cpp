@@ -28,28 +28,28 @@
  *   GNU General Public License for more details.                          *
  ****************************************************************************/
 #include "lrgroupfunctions.h"
-#include "lrdatasourcemanager.h"
-#include "lrbanddesignintf.h"
-#include "lritemdesignintf.h"
-#include "lrscriptenginemanager.h"
-#include "lrpageitemdesignintf.h"
 
+#include "lrbanddesignintf.h"
+#include "lrdatasourcemanager.h"
+#include "lritemdesignintf.h"
+#include "lrpageitemdesignintf.h"
+#include "lrscriptenginemanager.h"
 
 namespace LimeReport {
 
-void GroupFunction::slotBandRendered(BandDesignIntf *band)
+void GroupFunction::slotBandRendered(BandDesignIntf* band)
 {
     ScriptEngineManager& sm = ScriptEngineManager::instance();
 
-    QRegularExpression rxField(Const::FIELD_RX);
-    QRegularExpression rxVar(Const::VARIABLE_RX);
+    QRegularExpression rxField = getFieldRegEx();
+    QRegularExpression rxVar = getVariableRegEx();
 
-    switch (m_dataType){
-    case Field:{
+    switch (m_dataType) {
+    case Field: {
         QRegularExpressionMatch matchField = rxField.match(m_data);
-        if(matchField.hasMatch()){
+        if (matchField.hasMatch()) {
             QString field = matchField.captured(1);
-            if (m_dataManager->containsField(field)){
+            if (m_dataManager->containsField(field)) {
                 m_values.push_back(m_dataManager->fieldData(field));
                 m_valuesByBand.insert(band, m_dataManager->fieldData(field));
             } else {
@@ -58,11 +58,11 @@ void GroupFunction::slotBandRendered(BandDesignIntf *band)
         }
         break;
     }
-    case Variable:{
+    case Variable: {
         QRegularExpressionMatch matchVar = rxVar.match(m_data);
-        if(matchVar.hasMatch()){
+        if (matchVar.hasMatch()) {
             QString var = matchVar.captured(1);
-            if (m_dataManager->containsVariable(var)){
+            if (m_dataManager->containsVariable(var)) {
                 m_values.push_back(m_dataManager->variable(var));
                 m_valuesByBand.insert(band, m_dataManager->variable(var));
             } else {
@@ -71,10 +71,9 @@ void GroupFunction::slotBandRendered(BandDesignIntf *band)
         }
         break;
     }
-    case Script:
-    {
+    case Script: {
         QVariant value = sm.evaluateScript(m_data);
-        if (value.isValid()){
+        if (value.isValid()) {
             m_values.push_back(value);
             m_valuesByBand.insert(band, value);
         } else {
@@ -82,16 +81,18 @@ void GroupFunction::slotBandRendered(BandDesignIntf *band)
         }
         break;
     }
-    case ContentItem:{
+    case ContentItem: {
         QString itemName = m_data;
-        ContentItemDesignIntf* item = dynamic_cast<ContentItemDesignIntf*>(band->childByName(itemName.remove('"')));
-        if (item){
+        ContentItemDesignIntf* item
+            = dynamic_cast<ContentItemDesignIntf*>(band->childByName(itemName.remove('"')));
+        if (item) {
             m_values.push_back(item->content());
             m_valuesByBand.insert(band, item->content());
-        } else if (m_name.compare("COUNT",Qt::CaseInsensitive) == 0) {
+        } else if (m_name.compare("COUNT", Qt::CaseInsensitive) == 0) {
             m_values.push_back(1);
             m_valuesByBand.insert(band, 1);
-        } else setInvalid(tr("Item \"%1\" not found").arg(m_data));
+        } else
+            setInvalid(tr("Item \"%1\" not found").arg(m_data));
 
         break;
     }
@@ -100,9 +101,9 @@ void GroupFunction::slotBandRendered(BandDesignIntf *band)
     }
 }
 
-void GroupFunction::slotBandReRendered(BandDesignIntf *oldBand, BandDesignIntf *newBand)
+void GroupFunction::slotBandReRendered(BandDesignIntf* oldBand, BandDesignIntf* newBand)
 {
-    if (m_valuesByBand.contains(oldBand)){
+    if (m_valuesByBand.contains(oldBand)) {
         m_valuesByBand.insert(newBand, m_valuesByBand.value(oldBand));
         m_valuesByBand.remove(oldBand);
     }
@@ -110,12 +111,12 @@ void GroupFunction::slotBandReRendered(BandDesignIntf *oldBand, BandDesignIntf *
 
 QVariant GroupFunction::addition(QVariant value1, QVariant value2)
 {
-    return value1.toDouble()+value2.toDouble();
+    return value1.toDouble() + value2.toDouble();
 }
 
 QVariant GroupFunction::subtraction(QVariant value1, QVariant value2)
 {
-    return value1.toDouble()-value2.toDouble();
+    return value1.toDouble() - value2.toDouble();
 }
 
 QVariant GroupFunction::division(QVariant value1, QVariant value2)
@@ -128,26 +129,31 @@ QVariant GroupFunction::multiplication(QVariant value1, QVariant value2)
     return value1.toDouble() * value2.toDouble();
 }
 
-GroupFunction::GroupFunction(const QString &expression, const QString &dataBandName, DataSourceManager* dataManager)
-    :m_data(expression), m_dataBandName(dataBandName), m_dataManager(dataManager), m_isValid(true), m_errorMessage("")
+GroupFunction::GroupFunction(const QString& expression, const QString& dataBandName,
+                             DataSourceManager* dataManager):
+    m_data(expression),
+    m_dataBandName(dataBandName),
+    m_dataManager(dataManager),
+    m_isValid(true),
+    m_errorMessage("")
 {
-    QRegularExpression rxField(Const::FIELD_RX, QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression rxVariable(Const::VARIABLE_RX, QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression rxScript(Const::SCRIPT_RX, QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression rxField = getFieldRegEx();
+    QRegularExpression rxVariable = getVariableRegEx();
+    QRegularExpression rxScript = getScriptRegEx();
     QRegularExpressionMatch matchScript = rxScript.match(expression);
-    if(matchScript.hasMatch()){
+    if (matchScript.hasMatch()) {
         m_dataType = Script;
         return;
     }
 
     QRegularExpressionMatch matchField = rxField.match(expression);
-    if(matchField.hasMatch()){
-        m_dataType=Field;
+    if (matchField.hasMatch()) {
+        m_dataType = Field;
         return;
     }
 
     QRegularExpressionMatch matchVariable = rxVariable.match(expression);
-    if(matchVariable.hasMatch()){
+    if (matchVariable.hasMatch()) {
         m_dataType = Variable;
         return;
     }
@@ -155,28 +161,32 @@ GroupFunction::GroupFunction(const QString &expression, const QString &dataBandN
     m_dataType = ContentItem;
 }
 
-GroupFunction *GroupFunctionFactory::createGroupFunction(const QString &functionName, const QString &expression, const QString& dataBandName, DataSourceManager *dataManager)
+GroupFunction* GroupFunctionFactory::createGroupFunction(const QString& functionName,
+                                                         const QString& expression,
+                                                         const QString& dataBandName,
+                                                         DataSourceManager* dataManager)
 {
-    if (m_creators.contains(functionName)){
-        return m_creators.value(functionName)->createFunction(expression, dataBandName, dataManager);
+    if (m_creators.contains(functionName)) {
+        return m_creators.value(functionName)
+            ->createFunction(expression, dataBandName, dataManager);
     }
     return 0;
 }
 
 GroupFunctionFactory::~GroupFunctionFactory()
 {
-    foreach(GroupFunctionCreator* creator, m_creators.values()){
+    foreach (GroupFunctionCreator* creator, m_creators.values()) {
         delete creator;
     }
     m_creators.clear();
 }
 
-QVariant SumGroupFunction::calculate(PageItemDesignIntf *page)
+QVariant SumGroupFunction::calculate(PageItemDesignIntf* page)
 {
     QVariant res = 0;
-    if (!page){
-        foreach(QVariant value,values()){
-            res = addition(res,value);
+    if (!page) {
+        foreach (QVariant value, values()) {
+            res = addition(res, value);
         }
     } else {
         foreach (BandDesignIntf* band, page->bands()) {
@@ -186,70 +196,79 @@ QVariant SumGroupFunction::calculate(PageItemDesignIntf *page)
     return res;
 }
 
-QVariant AvgGroupFunction::calculate(PageItemDesignIntf *page)
+QVariant AvgGroupFunction::calculate(PageItemDesignIntf* page)
 {
     QVariant res = QVariant();
-    if (!page){
-        foreach(QVariant value,values()){
-            res=addition(res,value);
+    if (!page) {
+        foreach (QVariant value, values()) {
+            res = addition(res, value);
         }
     } else {
         foreach (BandDesignIntf* band, page->bands()) {
             res = addition(res, m_valuesByBand.value(band));
         }
     }
-    if (!res.isNull()&&(values().count()>0)){
-        res=division(res,values().count());
+    if (!res.isNull() && (values().count() > 0)) {
+        res = division(res, values().count());
     }
     return res;
 }
 
-QVariant MinGroupFunction::calculate(PageItemDesignIntf *page)
+QVariant MinGroupFunction::calculate(PageItemDesignIntf* page)
 {
-    //TODO: check variant type
+    // TODO: check variant type
     QVariant res = QVariant();
-    if (!page){
-        if (!values().empty()) res = values().at(0);
-        foreach(QVariant value, values()){
-            if (res.toDouble() > value.toDouble()) res = value;
+    if (!page) {
+        if (!values().empty())
+            res = values().at(0);
+        foreach (QVariant value, values()) {
+            if (res.toDouble() > value.toDouble())
+                res = value;
         }
     } else {
-        if (!page->bands().empty()) res = m_valuesByBand.value(page->bands().at(0));
+        if (!page->bands().empty())
+            res = m_valuesByBand.value(page->bands().at(0));
         foreach (BandDesignIntf* band, page->bands()) {
-            if (res.toDouble() > m_valuesByBand.value(band).toDouble()) res = m_valuesByBand.value(band);
+            if (res.toDouble() > m_valuesByBand.value(band).toDouble())
+                res = m_valuesByBand.value(band);
         }
     }
 
     return res;
 }
 
-QVariant MaxGroupFunction::calculate(PageItemDesignIntf *page)
+QVariant MaxGroupFunction::calculate(PageItemDesignIntf* page)
 {
-    //TODO: check variant type
+    // TODO: check variant type
     QVariant res = QVariant();
 
-    if (!page){
-        if (!values().empty()) res = values().at(0);
-        foreach(QVariant value, values()){
-            if (res.toDouble() < value.toDouble()) res = value;
+    if (!page) {
+        if (!values().empty())
+            res = values().at(0);
+        foreach (QVariant value, values()) {
+            if (res.toDouble() < value.toDouble())
+                res = value;
         }
     } else {
-        if (!page->bands().empty()) res = m_valuesByBand.value(page->bands().at(0));
+        if (!page->bands().empty())
+            res = m_valuesByBand.value(page->bands().at(0));
         foreach (BandDesignIntf* band, page->bands()) {
-            if (res.toDouble() < m_valuesByBand.value(band).toDouble()) res = m_valuesByBand.value(band);
+            if (res.toDouble() < m_valuesByBand.value(band).toDouble())
+                res = m_valuesByBand.value(band);
         }
     }
 
     return res;
 }
 
-QVariant CountGroupFunction::calculate(PageItemDesignIntf *page){
-    if (!page){
+QVariant CountGroupFunction::calculate(PageItemDesignIntf* page)
+{
+    if (!page) {
         return values().count();
     } else {
         int res = 0;
         foreach (BandDesignIntf* band, page->bands()) {
-            if (!m_valuesByBand.value(band).isNull()){
+            if (!m_valuesByBand.value(band).isNull()) {
                 res++;
             }
         }
@@ -257,5 +276,4 @@ QVariant CountGroupFunction::calculate(PageItemDesignIntf *page){
     }
 }
 
-} //namespace LimeReport
-
+} // namespace LimeReport
