@@ -185,6 +185,11 @@ public:
     QList<QAction*> actions() const { return m_actions; }
     QList<QObject*> actionObjects() const;
     Q_INVOKABLE void trigger(int index);
+    // Plain description of the entries for QML: text, enabled, visible,
+    // checkable, checked, separator and shortcut.
+    Q_INVOKABLE QVariantList items() const;
+    // Releases the menu once the view has closed it.
+    Q_INVOKABLE void dispose() { deleteLater(); }
 signals:
     void actionsChanged();
     void triggered(QAction* action);

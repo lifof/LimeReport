@@ -1,20 +1,20 @@
-set(CMAKE_AUTOMOC ON)
-
 set(LRDESIGNER_FILES
     designersettingmanager.h
     designersettingmanager.cpp
     main.cpp
-    mainicon.rc
+)
+if (WIN32)
+    list(APPEND LRDESIGNER_FILES mainicon.rc)
+endif()
+
+qt_add_executable(LRDesigner ${LRDESIGNER_FILES})
+
+target_link_libraries(LRDesigner PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Quick
+    Qt6::QuickControls2
+    LimeReport::LimeReport
 )
 
-add_executable(LRDesigner ${LRDESIGNER_FILES})
-
-target_include_directories(LRDesigner PUBLIC ${PROJECT_SOURCE_DIR}/include)
-
-target_link_libraries(LRDesigner PUBLIC
-    Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::PrintSupport
-    Qt${QT_VERSION_MAJOR}::Qml
-    ${PROJECT_NAME}-qt${QT_VERSION_MAJOR}
-)
+install(TARGETS LRDesigner RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

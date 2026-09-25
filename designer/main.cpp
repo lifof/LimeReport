@@ -1,34 +1,36 @@
-#include <QApplication>
-#include <LimeReport>
+#include <QGuiApplication>
+#include <QQuickStyle>
 #include <QTranslator>
-#include <QDebug>
+#include <QLocale>
+#include <QIcon>
+#include <LimeReport>
 #include "designersettingmanager.h"
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QGuiApplication a(argc, argv);
+    a.setApplicationName("LRDesigner");
+    a.setOrganizationName("LimeReport");
+    a.setWindowIcon(QIcon(":/report/images/logo32"));
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE"))
+        QQuickStyle::setStyle("Fusion");
+
     DesignerSettingManager manager;
 
     QTranslator limeReportTranslator;
     QTranslator qtBaseTranslator;
-	QTranslator qtDesignerTranslator;
-	QTranslator qtLinguistTranslator;
-	
-    QString translationPath = QApplication::applicationDirPath();
+
+    QString translationPath = QCoreApplication::applicationDirPath();
     translationPath.append("/translations");
     Qt::LayoutDirection layoutDirection = QLocale::system().textDirection();
 
     QString designerTranslation = QLocale(manager.getCurrentDefaultLanguage()).name();
 
     if (limeReportTranslator.load("limereport_"+designerTranslation, translationPath)){
-        qtBaseTranslator.load("qtbase_" + designerTranslation, translationPath);
-		qtDesignerTranslator.load("designer_"+designerTranslation,translationPath);        
-		
-        a.installTranslator(&qtBaseTranslator);
-		a.installTranslator(&qtDesignerTranslator);		
+        if (qtBaseTranslator.load("qtbase_" + designerTranslation, translationPath))
+            a.installTranslator(&qtBaseTranslator);
         a.installTranslator(&limeReportTranslator);
-		
-        Qt::LayoutDirection layoutDirection = QLocale(manager.getCurrentDefaultLanguage()).textDirection();
+        layoutDirection = QLocale(manager.getCurrentDefaultLanguage()).textDirection();
         a.setLayoutDirection(layoutDirection);
     }
 
@@ -47,8 +49,8 @@ int main(int argc, char *argv[])
     QObject::connect(&report, SIGNAL(currentDefaultDesignerLanguageChanged(QLocale::Language)),
                      &manager, SLOT(currentDefaultLanguageChanged(QLocale::Language)));
 
-    report.setShowDesignerModal(false);
+    // The designer window runs its own event loop and returns when it is closed.
+    report.setShowDesignerModal(true);
     report.designReport();
-    return a.exec();
+    return 0;
 }
-

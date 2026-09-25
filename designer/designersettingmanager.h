@@ -3,7 +3,8 @@
 
 #include <QObject>
 #include <QLocale>
-#include <QApplication>
+#include <QGuiApplication>
+#include <QCoreApplication>
 #include <QSettings>
 
 class DesignerSettingManager : public QObject

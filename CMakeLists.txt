@@ -78,16 +78,21 @@ set(LIMEREPORT_SOURCES
     ${LR}/serializators/lrxmlqrectserializator.cpp
     ${LR}/serializators/lrxmlreader.cpp
     ${LR}/serializators/lrxmlwriter.cpp
-    ${LR}/quick/lrquickpageview.cpp
+    ${LR}/quick/lrquicksceneview.cpp
     ${LR}/quick/lrquickpreview.cpp
     ${LR}/quick/lrquickdesigner.cpp
-    ${LR}/quick/lrquickdesignercanvas.cpp
     ${LR}/quick/lrquickpropertymodel.cpp
     ${LR}/quick/lrquickdatamodel.cpp
     ${LR}/quick/lrquickwindows.cpp
 )
 
 file(GLOB_RECURSE LIMEREPORT_HEADERS ${LR}/*.h)
+if (NOT ENABLE_ZINT)
+    list(FILTER LIMEREPORT_HEADERS EXCLUDE REGEX "lrbarcodeitem\\.h$")
+endif()
+if (NOT LIMEREPORT_STATIC)
+    list(FILTER LIMEREPORT_HEADERS EXCLUDE REGEX "lrfactoryinitializer\\.h$")
+endif()
 
 set(LIMEREPORT_RESOURCES
     ${LR}/items/items.qrc
@@ -119,21 +124,22 @@ target_sources(${LIMEREPORT_TARGET} PRIVATE ${LIMEREPORT_SOURCES} ${LIMEREPORT_H
 
 set(LIMEREPORT_QML_FILES
     ${LR}/quick/qml/ReportPreview.qml
-    ${LR}/quick/qml/ReportDesigner.qml
     ${LR}/quick/qml/PreviewWindow.qml
+    ${LR}/quick/qml/ReportDesigner.qml
     ${LR}/quick/qml/DesignerWindow.qml
     ${LR}/quick/qml/DesignerCanvasView.qml
     ${LR}/quick/qml/PropertyInspector.qml
     ${LR}/quick/qml/PropertyEditor.qml
     ${LR}/quick/qml/ObjectTree.qml
     ${LR}/quick/qml/DataBrowser.qml
+    ${LR}/quick/qml/TreeRow.qml
     ${LR}/quick/qml/ConnectionDialog.qml
     ${LR}/quick/qml/DataSourceDialog.qml
     ${LR}/quick/qml/VariableDialog.qml
     ${LR}/quick/qml/ContentEditorDialog.qml
+    ${LR}/quick/qml/PopupMenuHost.qml
     ${LR}/quick/qml/IconButton.qml
 )
-set_source_files_properties(${LIMEREPORT_QML_FILES} PROPERTIES QT_RESOURCE_ALIAS "")
 foreach(qmlfile ${LIMEREPORT_QML_FILES})
     get_filename_component(qmlname ${qmlfile} NAME)
     set_source_files_properties(${qmlfile} PROPERTIES QT_RESOURCE_ALIAS ${qmlname})
@@ -144,7 +150,7 @@ qt_add_qml_module(${LIMEREPORT_TARGET}
     VERSION 2.0
     RESOURCE_PREFIX /qt/qml
     QML_FILES ${LIMEREPORT_QML_FILES}
-    NO_PLUGIN_OPTIONAL
+    NO_PLUGIN
     OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml/LimeReport
 )
 

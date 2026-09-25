@@ -1489,6 +1489,26 @@ bool ReportEngine::loadFromFile(const QString &fileName, bool autoLoadPreviewOnC
     return d->loadFromFile(fileName, autoLoadPreviewOnChange);
 }
 
+static QString urlToFileName(const QUrl& url)
+{
+    return url.isLocalFile() ? url.toLocalFile() : url.toString();
+}
+
+bool ReportEngine::loadFromUrl(const QUrl& fileUrl, bool autoLoadPreviewOnChange)
+{
+    return loadFromFile(urlToFileName(fileUrl), autoLoadPreviewOnChange);
+}
+
+bool ReportEngine::saveToUrl(const QUrl& fileUrl)
+{
+    return saveToFile(urlToFileName(fileUrl));
+}
+
+bool ReportEngine::printToPdfUrl(const QUrl& fileUrl)
+{
+    return printToPDF(urlToFileName(fileUrl));
+}
+
 bool ReportEngine::loadFromByteArray(QByteArray* data){
     Q_D(ReportEngine);
     return d->loadFromByteArray(data);

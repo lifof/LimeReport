@@ -32,8 +32,11 @@
 #include "qglobal.h"
 #include <stdexcept>
 #include <QString>
-#include <QStyleOptionViewItem>
 #include <QtGlobal>
+#include <QColor>
+#include <QRegularExpression>
+
+class QPainter;
 
 #if defined(LIMEREPORT_EXPORTS)
 #  define LIMEREPORT_EXPORT Q_DECL_EXPORT
@@ -45,15 +48,15 @@
 
 namespace LimeReport {
 
+class StyleOptionGraphicsItem;
+
 #ifdef __GNUC__
 #define VARIABLE_IS_NOT_USED __attribute__ ((unused))
 #else
 #define VARIABLE_IS_NOT_USED
 #endif
 
-#if QT_VERSION >= 0x050800
 Q_NAMESPACE
-#endif
 
 namespace Const{
     int const DEFAULT_GRID_STEP = 1;
@@ -104,11 +107,7 @@ namespace Const{
     QString extractClassName(QString className);
     QString escapeSimbols(const QString& value);
     QString replaceHTMLSymbols(const QString &value);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
     QVector<QString> normalizeCaptures(const QRegularExpressionMatch &reg);
-#else
-    QVector<QString> normalizeCaptures(const QRegExp &reg);    
-#endif
     bool isColorDark(QColor color);
 
     enum ExpandType {EscapeSymbols, NoEscapeSymbols, ReplaceHTMLSymbols};
@@ -142,7 +141,7 @@ namespace Const{
 
     class IExternalPainter{
     public:
-        virtual void paintByExternalPainter(const QString& objectName, QPainter* painter, const QStyleOptionGraphicsItem* options) = 0;
+        virtual void paintByExternalPainter(const QString& objectName, QPainter* painter, const StyleOptionGraphicsItem* options) = 0;
         virtual ~IExternalPainter();
     };
 
@@ -152,21 +151,12 @@ namespace Const{
         virtual ~IPainterProxy();
     };
 
-#if QT_VERSION < 0x050000
-    typedef QStyleOptionViewItemV4 StyleOptionViewItem;
-#else
-    typedef QStyleOptionViewItem StyleOptionViewItem;
-#endif
 
     class Enums
     {
     public:
         enum VariableDataType {Undefined, String, Bool, Int, Real, Date, Time, DateTime};
-#if QT_VERSION >= 0x050500
         Q_ENUM(VariableDataType)
-#else
-        Q_ENUMS(VariableDataType)
-#endif
     private:
         Enums(){}
         Q_GADGET

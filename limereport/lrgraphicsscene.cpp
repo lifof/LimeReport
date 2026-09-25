@@ -92,6 +92,23 @@ QList<QObject*> PopupMenu::actionObjects() const
     return result;
 }
 
+QVariantList PopupMenu::items() const
+{
+    QVariantList result;
+    for (QAction* action : m_actions) {
+        QVariantMap item;
+        item.insert("text", action->text());
+        item.insert("enabled", action->isEnabled());
+        item.insert("visible", action->isVisible());
+        item.insert("checkable", action->isCheckable());
+        item.insert("checked", action->isChecked());
+        item.insert("separator", action->isSeparator());
+        item.insert("shortcut", action->shortcut().toString(QKeySequence::NativeText));
+        result.append(item);
+    }
+    return result;
+}
+
 void PopupMenu::trigger(int index)
 {
     if (index < 0 || index >= m_actions.size()) return;

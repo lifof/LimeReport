@@ -36,6 +36,8 @@
 #include <QColor>
 #include <QFont>
 #include <QImage>
+#include <QUrl>
+#include <QLocale>
 
 #include "lrglobal.h"
 #include "lrdatasourcemanagerintf.h"
@@ -155,32 +157,36 @@ public:
     bool    printToPDF(const QString& fileName, const PrintRange& range = PrintRange());
     bool    printPagesToPDF(ReportPages pages, const QString& fileName, const PrintRange& range = PrintRange());
     // "Printing" hands a rendered PDF to the platform's default viewer/printer.
-    bool    printReport();
+    Q_INVOKABLE bool printReport();
     void    printToFile(const QString& fileName);
     GraphicsScene* createPreviewScene(QObject *parent = 0);
     bool    exportReport(QString exporterName, const QString &fileName = "", const QMap<QString, QVariant>& params = QMap<QString, QVariant>());
     // Renders every page of the report into images at the given resolution.
     QList<QImage> renderToImages(qreal dpi = 96);
     // Opens the Qt Quick preview window. Blocks until it is closed when modal.
-    void    previewReport(PreviewHints hints = PreviewBarsUserSetting);
+    Q_INVOKABLE void previewReport(LimeReport::PreviewHints hints = PreviewBarsUserSetting);
     // Opens the Qt Quick designer window.
-    void    designReport();
+    Q_INVOKABLE void designReport();
     void    setShowProgressDialog(bool value);
     bool    isShowProgressDialog();
     IDataSourceManager* dataManager();
     IScriptEngineManager* scriptManager();
-    bool    loadFromFile(const QString& fileName, bool autoLoadPreviewOnChange = false);
+    Q_INVOKABLE bool loadFromFile(const QString& fileName, bool autoLoadPreviewOnChange = false);
+    // QML friendly variants taking file URLs.
+    Q_INVOKABLE bool loadFromUrl(const QUrl& fileUrl, bool autoLoadPreviewOnChange = false);
+    Q_INVOKABLE bool saveToUrl(const QUrl& fileUrl);
+    Q_INVOKABLE bool printToPdfUrl(const QUrl& fileUrl);
     bool    loadFromByteArray(QByteArray *data);
-    bool    loadFromString(const QString& data);
-    QString reportFileName();
+    Q_INVOKABLE bool loadFromString(const QString& data);
+    Q_INVOKABLE QString reportFileName();
     void    setReportFileName(const QString& fileName);
-    bool    saveToFile(const QString& fileName);
+    Q_INVOKABLE bool saveToFile(const QString& fileName);
     QByteArray  saveToByteArray();
-    QString saveToString();
-    QString lastError();
+    Q_INVOKABLE QString saveToString();
+    Q_INVOKABLE QString lastError();
     void setCurrentReportsDir(const QString& dirName);
-    void setReportName(const QString& name);
-    QString reportName();
+    Q_INVOKABLE void setReportName(const QString& name);
+    Q_INVOKABLE QString reportName();
     void setPreviewWindowTitle(const QString& title);
     void setPreviewWindowIcon(const QIcon& icon);
     void setPreviewPageBackgroundColor(QColor color);
