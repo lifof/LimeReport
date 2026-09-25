@@ -51,14 +51,14 @@ bool VARIABLE_IS_NOT_USED registred = LimeReport::DesignElementsFactory::instanc
 
 namespace LimeReport{
 
-PageHeader::PageHeader(QObject* owner, QGraphicsItem *parent)
+PageHeader::PageHeader(QObject* owner, GraphicsItem *parent)
 : BandDesignIntf(LimeReport::BandDesignIntf::PageHeader,xmlTag,owner,parent),
   m_printOnFirstPage(true), m_printOnLastPage(true) {
     setBandTypeText(tr("Page Header"));
     setMarkerColor(bandColor());
 }
 
-BaseDesignIntf *PageHeader::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *PageHeader::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new PageHeader(owner,parent);
 }

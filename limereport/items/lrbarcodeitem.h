@@ -152,19 +152,13 @@ public:
         KANJI_INPUT_MODE    = 3,
         SJIS_INPUT_MODE     = 4
     };
-#if QT_VERSION >= 0x050500
     Q_ENUM(BarcodeType)
     Q_ENUM(AngleType)
     Q_ENUM(InputMode)
-#else
-    Q_ENUMS(BarcodeType)
-    Q_ENUMS(AngleType)
-    Q_ENUMS(InputMode)
-#endif
-    BarcodeItem(QObject *owner, QGraphicsItem *parent);
+    BarcodeItem(QObject *owner, GraphicsItem *parent);
     ~BarcodeItem();
-    virtual BaseDesignIntf* createSameTypeItem(QObject *owner, QGraphicsItem *parent);
-    virtual void paint(QPainter *ppainter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    virtual BaseDesignIntf* createSameTypeItem(QObject *owner, GraphicsItem *parent);
+    virtual void paint(QPainter *ppainter, const StyleOptionGraphicsItem *option);
     virtual void updateItemSize(DataSourceManager *dataManager, RenderPass pass, int maxHeight);
     virtual bool isNeedUpdateSize(RenderPass pass) const;
     void setContent(const QString& content);

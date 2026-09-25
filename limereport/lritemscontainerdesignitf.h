@@ -40,7 +40,7 @@ bool itemSortContainerLessThen(const PItemSortContainer c1, const PItemSortConta
 class ItemsContainerDesignInft : public BookmarkContainerDesignIntf{
     Q_OBJECT
 public:
-  ItemsContainerDesignInft(const QString& xmlTypeName, QObject* owner = 0, QGraphicsItem* parent=0):
+  ItemsContainerDesignInft(const QString& xmlTypeName, QObject* owner = 0, GraphicsItem* parent=0):
       BookmarkContainerDesignIntf(xmlTypeName, owner, parent){}
   enum SnapshotType{Full, IgnoreBands};
 protected:

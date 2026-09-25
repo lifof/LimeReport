@@ -1,14 +1,11 @@
 #include "lrchartitem.h"
-#include <QStyleOptionGraphicsItem>
 #include <QPainter>
 
 #include "lrdesignelementsfactory.h"
-#include "lrchartitemeditor.h"
 #include "lrdatasourcemanager.h"
 #include "lrpagedesignintf.h"
 #include "lrreportengine_p.h"
 #include "lrdatadesignintf.h"
-#include "lrchartaxiseditor.h"
 
 #include "charts/lrpiechart.h"
 #include "charts/lrverticalbarchart.h"
@@ -140,7 +137,7 @@ void SeriesItem::setPreferredType(const SeriesItemPreferredType& type)
     m_preferredType = type;
 }
 
-ChartItem::ChartItem(QObject *owner, QGraphicsItem *parent)
+ChartItem::ChartItem(QObject *owner, GraphicsItem *parent)
     : ItemDesignIntf(xmlTag, owner, parent), m_legendBorder(true),
       m_legendAlign(LegendAlignRightCenter), m_titleAlign(TitleAlignCenter),
       m_chartType(Pie), m_labelsField(""), m_isEmpty(true),
@@ -180,7 +177,7 @@ void ChartItem::setTitleAlign(const TitleAlign &titleAlign)
     }
 }
 
-void ChartItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ChartItem::paint(QPainter *painter, const StyleOptionGraphicsItem *option)
 {
     painter->save();
     setupPainter(painter);
@@ -225,7 +222,7 @@ void ChartItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     m_chart->paintChart(painter,diagramRect);
 
     painter->restore();
-    ItemDesignIntf::paint(painter,option,widget);
+    ItemDesignIntf::paint(painter,option);
 }
 
 QObject *ChartItem::xAxisSettings()
@@ -264,12 +261,7 @@ AxisData *ChartItem::yAxisData()
     return m_yAxisData;
 }
 
-void ChartItem::showAxisEditorDialog(bool isXAxis)
-{
-    showDialog(new ChartAxisEditor(this, page(), isXAxis, settings()));
-}
-
-BaseDesignIntf *ChartItem::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *ChartItem::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     ChartItem* result = new ChartItem(owner,parent);
     foreach (SeriesItem* series, m_series) {
@@ -330,13 +322,6 @@ void ChartItem::fillLabels(IDataSource *dataSource)
             dataSource->next();
         }
     }
-}
-
-QWidget *ChartItem::defaultEditor()
-{
-    QWidget* editor = new ChartItemEditor(this, page(), settings());
-    editor->setAttribute(Qt::WA_DeleteOnClose);
-    return editor;
 }
 
 bool ChartItem::isNeedUpdateSize(RenderPass pass) const
@@ -1136,11 +1121,7 @@ QFont AbstractSeriesChart::adaptLabelsFont(QRectF rect, QFont font)
     QFontMetrics fm(font);
 
     foreach(QString label, m_chartItem->labels()){
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-        foreach (QString currentWord, label.split(QRegExp("\\W+"))){
-#else
         foreach (QString currentWord, label.split(QRegularExpression("\\W+"))){
-#endif
             if (fm.boundingRect(maxWord).width() < fm.boundingRect(currentWord).width()) maxWord = currentWord;
         }
     }

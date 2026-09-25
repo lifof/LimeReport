@@ -32,8 +32,6 @@
 
 #include <QDebug>
 #include <QObject>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
 
 #include "lrbasedesignintf.h"
 
@@ -59,21 +57,21 @@ bool horizontalLessThen(BaseDesignIntf *c1, BaseDesignIntf* c2){
     return c1->pos().x()<c2->pos().x();
 }
 
-HorizontalLayout::HorizontalLayout(QObject *owner, QGraphicsItem *parent)
+HorizontalLayout::HorizontalLayout(QObject *owner, GraphicsItem *parent)
     : AbstractLayout(xmlTag, owner, parent)
 {}
 
 HorizontalLayout::~HorizontalLayout()
 {}
 
-BaseDesignIntf *HorizontalLayout::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *HorizontalLayout::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new LimeReport::HorizontalLayout(owner, parent);
 }
 
 bool HorizontalLayout::canBeSplitted(int height) const
 {
-    foreach(QGraphicsItem* qgItem,childItems()){
+    foreach(GraphicsItem* qgItem,childItems()){
         BaseDesignIntf* item=dynamic_cast<BaseDesignIntf*>(qgItem);
         if (item)
             if (!item->canBeSplitted(height - item->pos().y())) return false;
@@ -81,7 +79,7 @@ bool HorizontalLayout::canBeSplitted(int height) const
     return true;
 }
 
-BaseDesignIntf *HorizontalLayout::cloneUpperPart(int height, QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *HorizontalLayout::cloneUpperPart(int height, QObject *owner, GraphicsItem *parent)
 {
     HorizontalLayout* upperPart = dynamic_cast<HorizontalLayout*>(createSameTypeItem(owner,parent));
     upperPart->initFromItem(this);
@@ -108,7 +106,7 @@ BaseDesignIntf *HorizontalLayout::cloneUpperPart(int height, QObject *owner, QGr
     return upperPart;
 }
 
-BaseDesignIntf *HorizontalLayout::cloneBottomPart(int height, QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *HorizontalLayout::cloneBottomPart(int height, QObject *owner, GraphicsItem *parent)
 {
     qreal maxHeight = 0;
     HorizontalLayout* bottomPart = dynamic_cast<HorizontalLayout*>(createSameTypeItem(owner,parent));

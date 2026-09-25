@@ -34,9 +34,6 @@
 #include "lrscriptenginemanager.h"
 #include "lrpageitemdesignintf.h"
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-#include <QRegExp>
-#endif
 
 namespace LimeReport {
 
@@ -44,24 +41,14 @@ void GroupFunction::slotBandRendered(BandDesignIntf *band)
 {
     ScriptEngineManager& sm = ScriptEngineManager::instance();
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    QRegExp rxField(Const::FIELD_RX);
-    QRegExp rxVar(Const::VARIABLE_RX);
-#else
     QRegularExpression rxField(Const::FIELD_RX);
     QRegularExpression rxVar(Const::VARIABLE_RX);
-#endif
 
     switch (m_dataType){
     case Field:{
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-        if (rxField.indexIn(m_data) != -1){
-            QString field = rxField.cap(1);
-#else
         QRegularExpressionMatch matchField = rxField.match(m_data);
         if(matchField.hasMatch()){
             QString field = matchField.captured(1);
-#endif
             if (m_dataManager->containsField(field)){
                 m_values.push_back(m_dataManager->fieldData(field));
                 m_valuesByBand.insert(band, m_dataManager->fieldData(field));
@@ -72,14 +59,9 @@ void GroupFunction::slotBandRendered(BandDesignIntf *band)
         break;
     }
     case Variable:{
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-        if (rxVar.indexIn(m_data) != -1){
-            QString var = rxVar.cap(1);
-#else
         QRegularExpressionMatch matchVar = rxVar.match(m_data);
         if(matchVar.hasMatch()){
             QString var = matchVar.captured(1);
-#endif
             if (m_dataManager->containsVariable(var)){
                 m_values.push_back(m_dataManager->variable(var));
                 m_valuesByBand.insert(band, m_dataManager->variable(var));
@@ -149,41 +131,23 @@ QVariant GroupFunction::multiplication(QVariant value1, QVariant value2)
 GroupFunction::GroupFunction(const QString &expression, const QString &dataBandName, DataSourceManager* dataManager)
     :m_data(expression), m_dataBandName(dataBandName), m_dataManager(dataManager), m_isValid(true), m_errorMessage("")
 {
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    QRegExp rxField(Const::FIELD_RX,Qt::CaseInsensitive);
-    QRegExp rxVariable(Const::VARIABLE_RX,Qt::CaseInsensitive);
-    QRegExp rxScript(Const::SCRIPT_RX,Qt::CaseInsensitive);
-#else
     QRegularExpression rxField(Const::FIELD_RX, QRegularExpression::CaseInsensitiveOption);
     QRegularExpression rxVariable(Const::VARIABLE_RX, QRegularExpression::CaseInsensitiveOption);
     QRegularExpression rxScript(Const::SCRIPT_RX, QRegularExpression::CaseInsensitiveOption);
-#endif
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    if (rxScript.indexIn(expression) != -1){
-#else
     QRegularExpressionMatch matchScript = rxScript.match(expression);
     if(matchScript.hasMatch()){
-#endif
         m_dataType = Script;
         return;
     }
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    if (rxField.indexIn(expression) != -1){
-#else
     QRegularExpressionMatch matchField = rxField.match(expression);
     if(matchField.hasMatch()){
-#endif
         m_dataType=Field;
         return;
     }
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    if (rxVariable.indexIn(expression) != -1){
-#else
     QRegularExpressionMatch matchVariable = rxVariable.match(expression);
     if(matchVariable.hasMatch()){
-#endif
         m_dataType = Variable;
         return;
     }

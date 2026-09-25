@@ -1,5 +1,3 @@
-#include <QPrinter>
-
 #include "lrpdfexporter.h"
 #include "lrexportersfactory.h"
 #include "lrreportengine_p.h"
@@ -23,14 +21,8 @@ bool PDFExporter::exportPages(ReportPages pages, const QString &fileName, const 
 {
     Q_UNUSED(params);
     if (!fileName.isEmpty()){
-        QPrinter printer;
-        printer.setOutputFileName(fileName);
-        printer.setOutputFormat(QPrinter::PdfFormat);
-        if (!pages.isEmpty()){
-            m_reportEngine->printPages(pages, &printer);
-        }
-        m_reportEngine->emitPrintedToPDF(fileName);
-        return true;
+        if (pages.isEmpty()) return false;
+        return m_reportEngine->printPagesToPDF(pages, fileName);
     }
     return false;
 }

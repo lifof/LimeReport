@@ -43,21 +43,17 @@ class ItemDesignIntf : public BaseDesignIntf
     Q_PROPERTY(ItemAlign itemAlign READ itemAlign WRITE setItemAlign)
 public:
     enum LocationType{Band,Page};
-#if QT_VERSION >= 0x050500
     Q_ENUM(LocationType)
-#else
-    Q_ENUMS(LocationType)
-#endif
-    ItemDesignIntf(const QString& xmlTypeName, QObject* owner = 0,QGraphicsItem* parent = 0);
+    ItemDesignIntf(const QString& xmlTypeName, QObject* owner = 0,GraphicsItem* parent = 0);
     LocationType itemLocation(){return m_itemLocation;}
     void setItemLocation(LocationType location);
     void setStretchToMaxHeight(bool value);
     bool stretchToMaxHeight(){return m_stretchToMaxHeight;}
-    BaseDesignIntf* cloneEmpty(int height, QObject *owner, QGraphicsItem *parent);
+    BaseDesignIntf* cloneEmpty(int height, QObject *owner, GraphicsItem *parent);
 signals:
     void itemLocationChanged(BaseDesignIntf* item, BaseDesignIntf* parent);
 protected:
-    QGraphicsItem* bandByPos();
+    GraphicsItem* bandByPos();
     virtual void initFlags();
 private:
     LocationType m_itemLocation;
@@ -66,10 +62,10 @@ private:
 
 class Spacer :public ItemDesignIntf{
 public:
-    Spacer(QObject* owner,QGraphicsItem* parent);
+    Spacer(QObject* owner,GraphicsItem* parent);
     bool isEmpty() const {return true;}
 protected:
-    BaseDesignIntf* createSameTypeItem(QObject *owner, QGraphicsItem *parent){
+    BaseDesignIntf* createSameTypeItem(QObject *owner, GraphicsItem *parent){
         return new Spacer(owner, parent);
     }
 };
@@ -78,7 +74,7 @@ class ContentItemDesignIntf : public ItemDesignIntf
 {
     Q_OBJECT
 public:
-    ContentItemDesignIntf(const QString& xmlTypeName, QObject* owner = 0,QGraphicsItem* parent = 0)
+    ContentItemDesignIntf(const QString& xmlTypeName, QObject* owner = 0,GraphicsItem* parent = 0)
         :ItemDesignIntf(xmlTypeName,owner,parent), m_contentBackedUp(false){}
     virtual QString content() const = 0;
     virtual void setContent(const QString& value) = 0;
@@ -94,7 +90,7 @@ private:
 
 class LayoutDesignIntf : public ItemDesignIntf{
 public:
-    LayoutDesignIntf(const QString& xmlTypeName, QObject* owner = 0,QGraphicsItem* parent = 0):
+    LayoutDesignIntf(const QString& xmlTypeName, QObject* owner = 0,GraphicsItem* parent = 0):
         ItemDesignIntf(xmlTypeName,owner,parent){}
     virtual void addChild(BaseDesignIntf *item,bool updateSize=true) = 0;
     virtual void removeChild(BaseDesignIntf *item) = 0;

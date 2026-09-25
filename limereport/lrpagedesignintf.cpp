@@ -27,6 +27,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License for more details.                          *
  ****************************************************************************/
+#include "lrmessagehub.h"
 #include "lrpagedesignintf.h"
 #include "lrbasedesignintf.h"
 #include "lrtextitem.h"
@@ -47,15 +48,10 @@
 
 #include "lrglobal.h"
 
-#include <QPrinter>
 #include <QDebug>
-#include <QGraphicsItem>
 #include <QString>
-#include <QDrag>
 #include <QMimeData>
-#include <QGraphicsSceneMouseEvent>
-#include <QApplication>
-#include <QMessageBox>
+#include <QGuiApplication>
 
 
 namespace LimeReport
@@ -67,7 +63,7 @@ bool bandSortBandLessThen(const BandDesignIntf *c1, const BandDesignIntf *c2)
 }
 
 PageDesignIntf::PageDesignIntf(QObject *parent):
-    QGraphicsScene(parent),
+    GraphicsScene(parent),
     m_pageItem(0),
     m_insertMode(false),
     m_itemInsertRect(0),
@@ -141,7 +137,7 @@ void PageDesignIntf::keyPressEvent(QKeyEvent *event)
           event->key() != Qt::Key_Down &&
           !m_changePosMode && !m_changeSizeMode )
        ) {
-        QGraphicsScene::keyPressEvent(event);
+        GraphicsScene::keyPressEvent(event);
         return;
     }
 
@@ -160,7 +156,7 @@ void PageDesignIntf::keyPressEvent(QKeyEvent *event)
     }
 
     if ((event->modifiers()& Qt::ControlModifier) && m_changePosMode && (!(event->modifiers()& Qt::ShiftModifier))) {
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             if (dynamic_cast<BaseDesignIntf *>(item)) {
                 switch (event->key()) {
                 case Qt::Key_Right:
@@ -181,7 +177,7 @@ void PageDesignIntf::keyPressEvent(QKeyEvent *event)
     }
 
     if ((event->modifiers()& Qt::ShiftModifier) && m_changeSizeMode && (!(event->modifiers()& Qt::ControlModifier))) {
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             if (dynamic_cast<BaseDesignIntf *>(item)) {
                 switch (event->key()) {
                 case Qt::Key_Right:
@@ -212,7 +208,7 @@ void PageDesignIntf::keyReleaseEvent(QKeyEvent *event)
         checkSizeOrPosChanges();
     }
 
-    QGraphicsScene::keyReleaseEvent(event);
+    GraphicsScene::keyReleaseEvent(event);
 }
 
 void PageDesignIntf::startInsertMode(const QString &ItemType)
@@ -295,7 +291,7 @@ void PageDesignIntf::removePageItem(PageItemDesignIntf::Ptr pageItem)
     }
 }
 
-void PageDesignIntf::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void PageDesignIntf::mousePressEvent(GraphicsSceneMouseEvent *event)
 {
     if (m_insertMode) {
         finalizeInsertMode();
@@ -306,12 +302,12 @@ void PageDesignIntf::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (event->buttons() & Qt::LeftButton && event->modifiers()==Qt::ShiftModifier){
         m_multiSelectStarted = true;
     } else {
-        QGraphicsScene::mousePressEvent(event);
+        GraphicsScene::mousePressEvent(event);
     }
 }
 
 
-void PageDesignIntf::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void PageDesignIntf::mouseMoveEvent(GraphicsSceneMouseEvent *event)
 {
 
     if (event->buttons() & Qt::LeftButton) {
@@ -324,7 +320,7 @@ void PageDesignIntf::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
     if (event->buttons() & Qt::LeftButton && m_multiSelectStarted){
         if (!m_selectionRect){
-            m_selectionRect = new QGraphicsRectItem();
+            m_selectionRect = new GraphicsRectItem();
             QBrush brush(QColor(140,190,30,50));
             m_selectionRect->setBrush(brush);
             m_selectionRect->setPen(Qt::DashLine);
@@ -358,10 +354,10 @@ void PageDesignIntf::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     	if (m_insertMode) m_itemInsertRect->setVisible(false);
     }
 
-    QGraphicsScene::mouseMoveEvent(event);
+    GraphicsScene::mouseMoveEvent(event);
 }
 
-void PageDesignIntf::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void PageDesignIntf::mouseReleaseEvent(GraphicsSceneMouseEvent *event)
 {
     if ( (event->button() == Qt::LeftButton)) {
         if (m_joinItem && selectedItems().count()==1){
@@ -401,12 +397,12 @@ void PageDesignIntf::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         m_selectionRect = 0;
         m_multiSelectStarted = false;
     }
-    QGraphicsScene::mouseReleaseEvent(event);
+    GraphicsScene::mouseReleaseEvent(event);
 }
 
 void PageDesignIntf::setSelectionRect(QRectF selectionRect){
     clearSelection();
-    foreach(QGraphicsItem* item, items()){
+    foreach(GraphicsItem* item, items()){
         if ( selectionRect.intersects(item->mapRectToScene(item->boundingRect())))
             if (dynamic_cast<ItemDesignIntf*>(item))
                 item->setSelected(true);
@@ -468,7 +464,7 @@ BaseDesignIntf *PageDesignIntf::internalAddBand(T bandType)
     if (increaseBandIndex) pageItem()->increaseBandIndex(bandIndex);
 
     registerItem(band);
-    foreach(QGraphicsItem * item, selectedItems()) item->setSelected(false);
+    foreach(GraphicsItem * item, selectedItems()) item->setSelected(false);
     band->setSelected(true);
     CommandIf::Ptr command = InsertBandCommand::create(this, band->objectName());
     saveCommand(command, false);
@@ -659,7 +655,7 @@ QString PageDesignIntf::genObjectName(const QObject &object)
 
     QString tmpName = QString("%1%2").arg(className).arg(m_currentObjectIndex);
 
-    QList<QGraphicsItem*> itemsList = items();
+    QList<GraphicsItem*> itemsList = items();
     while (isExistsObjectName(tmpName,itemsList)) {
         ++m_currentObjectIndex;
         tmpName = QString("%1%2").arg(className).arg(m_currentObjectIndex);
@@ -668,10 +664,10 @@ QString PageDesignIntf::genObjectName(const QObject &object)
     return tmpName;
 }
 
-bool PageDesignIntf::isExistsObjectName(const QString &objectName, QList<QGraphicsItem*>& itemsList) const
+bool PageDesignIntf::isExistsObjectName(const QString &objectName, QList<GraphicsItem*>& itemsList) const
 {
     QObject *item = 0;
-    //QList<QGraphicsItem*> itemList = items();
+    //QList<GraphicsItem*> itemList = items();
     for (int i = 0; i < itemsList.count(); i++) {
         item = dynamic_cast<QObject *>(itemsList[i]);
         if (item)
@@ -724,7 +720,7 @@ ReportEnginePrivate *PageDesignIntf::reportEditor()
     return m_reportEditor;
 }
 
-void PageDesignIntf::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
+void PageDesignIntf::dragEnterEvent(GraphicsSceneDragDropEvent *event)
 {
 
     if (!event->mimeData()->text().isEmpty()){
@@ -736,13 +732,13 @@ void PageDesignIntf::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
     }
 }
 
-void PageDesignIntf::dragMoveEvent(QGraphicsSceneDragDropEvent* /**event*/)
+void PageDesignIntf::dragMoveEvent(GraphicsSceneDragDropEvent* /**event*/)
 {
 //    event->setDropAction(Qt::CopyAction);
 //    event->accept();
 }
 
-void PageDesignIntf::dropEvent(QGraphicsSceneDragDropEvent* event)
+void PageDesignIntf::dropEvent(GraphicsSceneDragDropEvent* event)
 {
     if (event->mimeData()->hasText() &&
             ((event->mimeData()->text().indexOf("field:")==0) ||
@@ -752,33 +748,22 @@ void PageDesignIntf::dropEvent(QGraphicsSceneDragDropEvent* event)
         BaseDesignIntf* item = addReportItem("TextItem",event->scenePos(),QSize(250, 50));
         TextItem* ti = dynamic_cast<TextItem*>(item);
         QString data = event->mimeData()->text().remove(0,event->mimeData()->text().indexOf(":")+1);        
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-        if (isVar) data = data.remove(QRegExp("  \\[.*\\]"));
-#else
         if (isVar) data = data.remove(QRegularExpression("  \\[.*\\]"));
-#endif
         ti->setContent(data);
         if (!isVar){
             BandDesignIntf* parentBand = dynamic_cast<BandDesignIntf*>(ti->parentItem());
             if (parentBand && parentBand->datasourceName().isEmpty()){
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-                QRegExp dataSource("(?:\\$D\\{\\s*(.*)\\..*\\})");
-                if (dataSource.indexIn(data) != -1){
-                    parentBand->setProperty("datasource",dataSource.cap(1));
-                }
-#else
                 QRegularExpression dataSource("(?:\\$D\\{\\s*(.*)\\..*\\})");
                 QRegularExpressionMatch match = dataSource.match(data);
                 if(match.hasMatch()){
                     parentBand->setProperty("datasource", match.captured(1));
                 }
-#endif
             }
         }
     }
 }
 
-void PageDesignIntf::dragLeaveEvent(QGraphicsSceneDragDropEvent *)
+void PageDesignIntf::dragLeaveEvent(GraphicsSceneDragDropEvent *)
 {
     //removeItem(m_itemInsertRect);
     //delete m_itemInsertRect;
@@ -788,7 +773,7 @@ void PageDesignIntf::dragLeaveEvent(QGraphicsSceneDragDropEvent *)
 QStringList PageDesignIntf::possibleParentItems()
 {
     QStringList itemsList;
-    foreach(QGraphicsItem * item, items()) {
+    foreach(GraphicsItem * item, items()) {
         BandDesignIntf *band = dynamic_cast<BandDesignIntf *>(item);
 
         if (band) {
@@ -863,7 +848,7 @@ void PageDesignIntf::finalizeInsertMode()
 void PageDesignIntf::saveSelectedItemsPos()
 {
     m_positionStamp.clear();
-    foreach(QGraphicsItem * item, selectedItems()) {
+    foreach(GraphicsItem * item, selectedItems()) {
         BaseDesignIntf *reportItem = dynamic_cast<BaseDesignIntf *>(item);
 
         if (reportItem) {
@@ -878,7 +863,7 @@ void PageDesignIntf::saveSelectedItemsPos()
 void PageDesignIntf::saveSelectedItemsGeometry()
 {
     m_geometryStamp.clear();
-    foreach(QGraphicsItem * item, selectedItems()) {
+    foreach(GraphicsItem * item, selectedItems()) {
         BaseDesignIntf *reportItem = dynamic_cast<BaseDesignIntf *>(item);
 
         if (reportItem) {
@@ -895,7 +880,7 @@ void PageDesignIntf::checkSizeOrPosChanges()
     CommandIf::Ptr posCommand;
     if ((selectedItems().count() > 0) && (m_positionStamp.count() > 0)) {
         bool bandFound = false;
-        foreach(QGraphicsItem* item, selectedItems()){
+        foreach(GraphicsItem* item, selectedItems()){
             BandDesignIntf* band = dynamic_cast<BandDesignIntf*>(item);
             if (band){
                 bandFound = true;
@@ -1043,7 +1028,7 @@ void PageDesignIntf::registerBand(BandDesignIntf *band)
 
 void PageDesignIntf::slotUpdateItemSize()
 {
-    foreach(QGraphicsItem * item, items()) {
+    foreach(GraphicsItem * item, items()) {
         BandDesignIntf *reportBand = dynamic_cast<BandDesignIntf *>(item);
 
         if (reportBand) reportBand->updateItemSize(0);
@@ -1071,7 +1056,7 @@ void PageDesignIntf::changeSelectedGroupProperty(const QString &name, const QVar
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
         m_executingCommand = true;
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem) {
                 QVariant oldValue = bdItem->property(name.toLatin1());
@@ -1116,7 +1101,7 @@ void PageDesignIntf::setReportSettings(ReportSettings *reportSettings)
 
 void PageDesignIntf::setPropertyToSelectedItems(const char* name, const QVariant& value)
 {
-    foreach(QGraphicsItem* gi, selectedItems()){
+    foreach(GraphicsItem* gi, selectedItems()){
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(gi);
         if(item && item->metaObject()->indexOfProperty(name) != -1 ) item->setProperty(name,value);
     }
@@ -1273,7 +1258,7 @@ void PageDesignIntf::changeSelectedGrpoupTextAlignPropperty(const bool& horizont
     if (selectedItems().count() > 0) {
         CommandGroup::Ptr cm = CommandGroup::create();
         m_executingCommand = true;
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem) {
                 QVariant oldValue = bdItem->property("alignment");
@@ -1315,10 +1300,10 @@ void PageDesignIntf::redo()
 void PageDesignIntf::copy()
 {
     if (!selectedItems().isEmpty()) {
-        QClipboard *clipboard = QApplication::clipboard();
+        QClipboard *clipboard = QGuiApplication::clipboard();
         ItemsWriterIntf *writer = new XMLWriter;
         bool shouldWrite = false;
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             ItemDesignIntf *reportItem = dynamic_cast<ItemDesignIntf *>(item);
 
             if (reportItem) {
@@ -1346,7 +1331,7 @@ BaseDesignIntf* PageDesignIntf::findDestObject(BaseDesignIntf* item){
 
 void PageDesignIntf::paste()
 {
-    QClipboard *clipboard = QApplication::clipboard();
+    QClipboard *clipboard = QGuiApplication::clipboard();
     ItemsReaderIntf::Ptr reader = StringXMLreader::create(clipboard->text());
     if (reader->first() && reader->itemType() == "Object"){
         BaseDesignIntf* destItem = 0;
@@ -1368,12 +1353,12 @@ void PageDesignIntf::deleteSelected()
           saveCommand(removeReportItemCommand(dynamic_cast<BaseDesignIntf*>(selectedItems().at(0))));
     } else {
 
-        QList<QGraphicsItem*> itemsToDelete = selectedItems();
+        QList<GraphicsItem*> itemsToDelete = selectedItems();
 
         CommandGroup::Ptr commandGroup = CommandGroup::create();
 
         QList<BandDesignIntf*> bands;
-        QList<QGraphicsItem*>::iterator it;
+        QList<GraphicsItem*>::iterator it;
 
         for(it = itemsToDelete.begin(); it != itemsToDelete.end();){
             BandDesignIntf* band = dynamic_cast<BandDesignIntf*>(*it);
@@ -1386,13 +1371,13 @@ void PageDesignIntf::deleteSelected()
         }
 
         foreach (BandDesignIntf* band, bands){
-            foreach (QGraphicsItem* bandItem, band->childItems()) {
+            foreach (GraphicsItem* bandItem, band->childItems()) {
                 itemsToDelete.removeOne(bandItem);
             }
         }
 
         if (!itemsToDelete.isEmpty()){
-            foreach(QGraphicsItem* item, itemsToDelete){
+            foreach(GraphicsItem* item, itemsToDelete){
                 if (!dynamic_cast<PageItemDesignIntf*>(item))
                     commandGroup->addCommand(removeReportItemCommand(dynamic_cast<BaseDesignIntf*>(item)),false);
             }
@@ -1422,9 +1407,9 @@ void PageDesignIntf::setToSaved()
 
 void PageDesignIntf::bringToFront()
 {
-    foreach(QGraphicsItem * item, selectedItems()) {
+    foreach(GraphicsItem * item, selectedItems()) {
         qreal zOrder = 0;
-        foreach(QGraphicsItem * colItem, collidingItems(item)) {
+        foreach(GraphicsItem * colItem, collidingItems(item)) {
             if (zOrder <= colItem->zValue())
                 zOrder = colItem->zValue() + 0.1;
         }
@@ -1444,9 +1429,9 @@ void PageDesignIntf::bringToFront()
 
 void PageDesignIntf::sendToBack()
 {
-    foreach(QGraphicsItem * item, selectedItems()) {
+    foreach(GraphicsItem * item, selectedItems()) {
         qreal zOrder = 0;
-        foreach(QGraphicsItem * colItem, collidingItems(item)) {
+        foreach(GraphicsItem * colItem, collidingItems(item)) {
             if (zOrder >= colItem->zValue())
                 zOrder = colItem->zValue() - 0.1;
         }
@@ -1464,7 +1449,7 @@ void PageDesignIntf::sendToBack()
 }
 
 bool PageDesignIntf::selectionContainsBand(){
-    foreach(QGraphicsItem * item,selectedItems()){
+    foreach(GraphicsItem * item,selectedItems()){
         BandDesignIntf *band = dynamic_cast<BandDesignIntf *>(item);
         if (band) return true;
     }
@@ -1476,7 +1461,7 @@ void PageDesignIntf::alignToLeft()
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
         bool moveInBand = selectionContainsBand();
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem && !bdItem->isGeometryLocked()) {
                 QRectF oldGeometry = bdItem->geometry();
@@ -1494,7 +1479,7 @@ void PageDesignIntf::alignToRigth()
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
         bool moveInBand = selectionContainsBand();
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem && !bdItem->isGeometryLocked() && !bdItem->isBand()) {
                 QRectF oldGeometry = bdItem->geometry();
@@ -1519,7 +1504,7 @@ void PageDesignIntf::alignToVCenter()
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
         bool moveInBand = selectionContainsBand();
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem && !bdItem->isGeometryLocked() && !bdItem->isBand()) {
                 QRectF oldGeometry = bdItem->geometry();
@@ -1543,7 +1528,7 @@ void PageDesignIntf::alignToTop()
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
         bool moveInBand = selectionContainsBand();
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem && !bdItem->isGeometryLocked() && !bdItem->isBand()) {
                 QRectF oldGeometry = bdItem->geometry();
@@ -1565,7 +1550,7 @@ void PageDesignIntf::alignToBottom()
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
         bool moveInBand = selectionContainsBand();
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem && !bdItem->isGeometryLocked() && !bdItem->isBand()) {
                 QRectF oldGeometry = bdItem->geometry();
@@ -1588,7 +1573,7 @@ void PageDesignIntf::alignToHCenter()
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
         bool moveInBand = selectionContainsBand();
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem && !bdItem->isGeometryLocked() && !bdItem->isBand()) {
                 QRectF oldGeometry = bdItem->geometry();
@@ -1610,7 +1595,7 @@ void PageDesignIntf::sameWidth()
 {
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem && !bdItem->isGeometryLocked()) {
                 QRectF oldGeometry = bdItem->geometry();
@@ -1627,7 +1612,7 @@ void PageDesignIntf::sameHeight()
 {
     if ((selectedItems().count() > 0) && m_firstSelectedItem) {
         CommandGroup::Ptr cm = CommandGroup::create();
-        foreach(QGraphicsItem * item, selectedItems()) {
+        foreach(GraphicsItem * item, selectedItems()) {
             BaseDesignIntf *bdItem = dynamic_cast<BaseDesignIntf *>(item);
             if (bdItem && !bdItem->isGeometryLocked()) {
                 QRectF oldGeometry = bdItem->geometry();
@@ -1645,8 +1630,8 @@ void PageDesignIntf::addHLayout()
 
     if (selectedItems().isEmpty()) return;
 
-    QList<QGraphicsItem *> si = selectedItems();
-    QList<QGraphicsItem *>::iterator it = si.begin();
+    QList<GraphicsItem *> si = selectedItems();
+    QList<GraphicsItem *>::iterator it = si.begin();
 
     int itemsCount = 0;
     for (; it != si.end();) {
@@ -1669,10 +1654,10 @@ void PageDesignIntf::addHLayout()
 
     if (!si.isEmpty()){
         it = si.begin();
-        QGraphicsItem* elementsParent = (*it)->parentItem();
+        GraphicsItem* elementsParent = (*it)->parentItem();
         for (; it != si.end();++it) {
             if ((*it)->parentItem()!=elementsParent){
-                QMessageBox::information(0,QObject::tr("Attention!"),QObject::tr("Selected elements have different parent containers"));
+                MessageHub::information(0,QObject::tr("Attention!"),QObject::tr("Selected elements have different parent containers"));
                 return;
             }
         }
@@ -1687,8 +1672,8 @@ void PageDesignIntf::addVLayout()
 {
     if (selectedItems().isEmpty()) return;
 
-    QList<QGraphicsItem *> si = selectedItems();
-    QList<QGraphicsItem *>::iterator it = si.begin();
+    QList<GraphicsItem *> si = selectedItems();
+    QList<GraphicsItem *>::iterator it = si.begin();
 
     int itemsCount = 0;
     for (; it != si.end();) {
@@ -1711,10 +1696,10 @@ void PageDesignIntf::addVLayout()
 
     if (!si.isEmpty()){
         it = si.begin();
-        QGraphicsItem* elementsParent = (*it)->parentItem();
+        GraphicsItem* elementsParent = (*it)->parentItem();
         for (; it != si.end();++it) {
             if ((*it)->parentItem()!=elementsParent){
-                QMessageBox::information(0,QObject::tr("Attention!"),QObject::tr("Selected elements have different parent containers"));
+                MessageHub::information(0,QObject::tr("Attention!"),QObject::tr("Selected elements have different parent containers"));
                 return;
             }
         }
@@ -1723,7 +1708,7 @@ void PageDesignIntf::addVLayout()
     }
 }
 
-bool hLayoutLessThen(QGraphicsItem *c1, QGraphicsItem *c2)
+bool hLayoutLessThen(GraphicsItem *c1, GraphicsItem *c2)
 {
     return c1->pos().x() < c2->pos().x();
 }
@@ -1732,8 +1717,8 @@ HorizontalLayout* PageDesignIntf::internalAddHLayout()
 {
     if (m_firstSelectedItem && (selectedItems().count() > 1)) {
 
-        QList<QGraphicsItem *> si = selectedItems();
-        QList<QGraphicsItem *>::iterator it = si.begin();
+        QList<GraphicsItem *> si = selectedItems();
+        QList<GraphicsItem *>::iterator it = si.begin();
         std::sort(si.begin(), si.end(), hLayoutLessThen);
         it = si.begin();
 
@@ -1753,7 +1738,7 @@ HorizontalLayout* PageDesignIntf::internalAddHLayout()
                 layout->addChild(bdItem);
             }
 
-            foreach(QGraphicsItem * item, selectedItems()) {
+            foreach(GraphicsItem * item, selectedItems()) {
                 item->setSelected(false);
             }
 
@@ -1767,7 +1752,7 @@ HorizontalLayout* PageDesignIntf::internalAddHLayout()
     return 0;
 }
 
-bool vLayoutLessThen(QGraphicsItem *c1, QGraphicsItem *c2)
+bool vLayoutLessThen(GraphicsItem *c1, GraphicsItem *c2)
 {
     return c1->pos().y() < c2->pos().y();
 }
@@ -1776,8 +1761,8 @@ VerticalLayout* PageDesignIntf::internalAddVLayout()
 {
     if (m_firstSelectedItem && (selectedItems().count() > 1)) {
 
-        QList<QGraphicsItem *> si = selectedItems();
-        QList<QGraphicsItem *>::iterator it = si.begin();
+        QList<GraphicsItem *> si = selectedItems();
+        QList<GraphicsItem *>::iterator it = si.begin();
         std::sort(si.begin(), si.end(), vLayoutLessThen);
         it = si.begin();
 
@@ -1797,7 +1782,7 @@ VerticalLayout* PageDesignIntf::internalAddVLayout()
                 layout->addChild(bdItem);
             }
 
-            foreach(QGraphicsItem * item, selectedItems()) {
+            foreach(GraphicsItem * item, selectedItems()) {
                 item->setSelected(false);
             }
 
@@ -1828,7 +1813,7 @@ void PageDesignIntf::setBorders(const BaseDesignIntf::BorderLines& border)
 
 void PageDesignIntf::lockSelectedItems()
 {
-    foreach(QGraphicsItem* graphicItem, selectedItems()){
+    foreach(GraphicsItem* graphicItem, selectedItems()){
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(graphicItem);
         if (item) item->setProperty("geometryLocked", true);
     }
@@ -1836,7 +1821,7 @@ void PageDesignIntf::lockSelectedItems()
 
 void PageDesignIntf::unlockSelectedItems()
 {
-    foreach(QGraphicsItem* graphicItem, selectedItems()){
+    foreach(GraphicsItem* graphicItem, selectedItems()){
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(graphicItem);
         if (item) item->setProperty("geometryLocked", false);
     }
@@ -1845,7 +1830,7 @@ void PageDesignIntf::unlockSelectedItems()
 
 void PageDesignIntf::selectOneLevelItems()
 {
-    foreach(QGraphicsItem* graphicItem, selectedItems()){
+    foreach(GraphicsItem* graphicItem, selectedItems()){
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(graphicItem->parentItem());
         if (item)
             selectAllChildren(item);
@@ -1867,7 +1852,7 @@ void PageDesignIntf::setItemMode(BaseDesignIntf::ItemMode mode)
         if (m_currentPage) {
             m_currentPage->setItemMode(mode);
         } else {
-            foreach(QGraphicsItem * item, items()) {
+            foreach(GraphicsItem * item, items()) {
                 BaseDesignIntf *reportItem = dynamic_cast<BaseDesignIntf *>(item);
                 if (reportItem) {
                     reportItem->setItemMode(itemMode());
@@ -1883,7 +1868,7 @@ void PageDesignIntf::setItemMode(BaseDesignIntf::ItemMode mode)
 BaseDesignIntf* PageDesignIntf::reportItemByName(const QString &name)
 {
 
-    foreach(QGraphicsItem * item, items()) {
+    foreach(GraphicsItem * item, items()) {
         BaseDesignIntf *bd = dynamic_cast<BaseDesignIntf *>(item);
         if (bd && (bd->objectName().compare(name, Qt::CaseInsensitive) == 0)) return bd;
     }
@@ -1893,7 +1878,7 @@ BaseDesignIntf* PageDesignIntf::reportItemByName(const QString &name)
 
 QList<BaseDesignIntf*> PageDesignIntf::reportItemsByName(const QString &name){
     QList<BaseDesignIntf*> result;
-    foreach(QGraphicsItem * item, items()) {
+    foreach(GraphicsItem * item, items()) {
         BaseDesignIntf *bd = dynamic_cast<BaseDesignIntf *>(item);
         if (bd && (bd->objectName().compare(name, Qt::CaseInsensitive) == 0)) result.append(bd);
     }
@@ -1903,7 +1888,7 @@ QList<BaseDesignIntf*> PageDesignIntf::reportItemsByName(const QString &name){
 BandDesignIntf *PageDesignIntf::bandAt(QPointF pos)
 {
     BandDesignIntf *band=0;
-    foreach(QGraphicsItem * item, items(pos)) {
+    foreach(GraphicsItem * item, items(pos)) {
         band = dynamic_cast<BandDesignIntf *>(item);
         if (band) break;
     }
@@ -2144,7 +2129,7 @@ CommandIf::Ptr CutCommand::create(PageDesignIntf *page)
     CutCommand *command = new CutCommand();
     command->setPage(page);
     ItemsWriterIntf *writer = new XMLWriter();
-    foreach(QGraphicsItem * item, page->selectedItems()) {
+    foreach(GraphicsItem * item, page->selectedItems()) {
         if (!dynamic_cast<PageItemDesignIntf*>(item)){
             ItemDesignIntf *reportItem = dynamic_cast<ItemDesignIntf *>(item);
 
@@ -2157,7 +2142,7 @@ CommandIf::Ptr CutCommand::create(PageDesignIntf *page)
     command->setXML(writer->saveToString());
 
     if (command->m_itemNames.count() > 0) {
-        QClipboard *clipboard = QApplication::clipboard();
+        QClipboard *clipboard = QGuiApplication::clipboard();
         clipboard->setText(writer->saveToString());
     }
 
@@ -2355,17 +2340,13 @@ void CommandGroup::addCommand(CommandIf::Ptr command, bool execute)
         m_commands.append(command);
 }
 
-PrintRange::PrintRange(QAbstractPrintDialog::PrintRange rangeType, int fromPage, int toPage)
-    :m_rangeType(rangeType), m_fromPage(fromPage), m_toPage(toPage)
-{}
-
 CommandIf::Ptr InsertHLayoutCommand::create(PageDesignIntf *page)
 {
     InsertHLayoutCommand *command = new InsertHLayoutCommand();
     command->setPage(page);
 
-    QList<QGraphicsItem *> si = page->selectedItems();
-    QList<QGraphicsItem *>::iterator it = si.begin();
+    QList<GraphicsItem *> si = page->selectedItems();
+    QList<GraphicsItem *>::iterator it = si.begin();
 
     BaseDesignIntf* parentItem = dynamic_cast<BaseDesignIntf*>((*it)->parentItem());
     command->m_oldParentName = (parentItem)?(parentItem->objectName()):"";
@@ -2396,7 +2377,7 @@ void InsertHLayoutCommand::undoIt()
 {
     HorizontalLayout* layout = dynamic_cast<HorizontalLayout*>(page()->reportItemByName(m_layoutName));
     if (layout){
-        foreach(QGraphicsItem* item, layout->childBaseItems()){
+        foreach(GraphicsItem* item, layout->childBaseItems()){
             BaseDesignIntf* bi = dynamic_cast<BaseDesignIntf*>(item);
             BaseDesignIntf* parent = page()->reportItemByName(m_oldParentName);
             if (bi && parent){
@@ -2549,8 +2530,8 @@ CommandIf::Ptr InsertVLayoutCommand::create(PageDesignIntf* page)
     InsertVLayoutCommand *command = new InsertVLayoutCommand();
     command->setPage(page);
 
-    QList<QGraphicsItem *> si = page->selectedItems();
-    QList<QGraphicsItem *>::iterator it = si.begin();
+    QList<GraphicsItem *> si = page->selectedItems();
+    QList<GraphicsItem *>::iterator it = si.begin();
 
     BaseDesignIntf* parentItem = dynamic_cast<BaseDesignIntf*>((*it)->parentItem());
     command->m_oldParentName = (parentItem)?(parentItem->objectName()):"";
@@ -2581,7 +2562,7 @@ void InsertVLayoutCommand::undoIt()
 {
     VerticalLayout* layout = dynamic_cast<VerticalLayout*>(page()->reportItemByName(m_layoutName));
     if (layout){
-        foreach(QGraphicsItem* item, layout->childBaseItems()){
+        foreach(GraphicsItem* item, layout->childBaseItems()){
             BaseDesignIntf* bi = dynamic_cast<BaseDesignIntf*>(item);
             BaseDesignIntf* parent = page()->reportItemByName(m_oldParentName);
             if (bi && parent){

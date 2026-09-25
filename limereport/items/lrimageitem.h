@@ -58,14 +58,10 @@ public:
         Hex     = 1,
         Base64  = 2
     };
-#if QT_VERSION >= 0x050500
     Q_ENUM(Format)
-#else
-    Q_ENUMS(Format)
-#endif
 
-    ImageItem(QObject *owner, QGraphicsItem *parent);
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    ImageItem(QObject *owner, GraphicsItem *parent);
+    void paint(QPainter *painter, const StyleOptionGraphicsItem *option);
     void setImage(QImage value);
     QImage image();
     void setResourcePath(const QString &value);
@@ -95,18 +91,16 @@ public:
     bool useExternalPainter() const;
     void setUseExternalPainter(bool value);
 
-    QWidget* defaultEditor();
-
     QByteArray imageAsByteArray() const;
     void setImageAsByteArray(QByteArray image);
     QString fileFilter() const;
 protected:
-    BaseDesignIntf* createSameTypeItem(QObject *owner, QGraphicsItem *parent);
+    BaseDesignIntf* createSameTypeItem(QObject *owner, GraphicsItem *parent);
     void updateItemSize(DataSourceManager *dataManager, RenderPass pass, int maxHeight);
     bool isNeedUpdateSize(RenderPass) const;
     bool drawDesignBorders() const {return m_picture.isNull();}
     void loadPictureFromVariant(QVariant& data);
-    void preparePopUpMenu(QMenu &menu);
+    void preparePopUpMenu(PopupMenu &menu);
     void processPopUpAction(QAction *action);
     QImage drawImage();
 private:

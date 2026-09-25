@@ -16,16 +16,15 @@ class SVGItem: public ItemDesignIntf, public IEditableImageItem
     Q_PROPERTY(QString variable READ variable WRITE setVariable)
     Q_PROPERTY(bool watermark READ isWatermark WRITE setWatermark)
 public:
-    SVGItem(QObject *owner, QGraphicsItem *parent);
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    SVGItem(QObject *owner, GraphicsItem *parent);
+    void paint(QPainter *painter, const StyleOptionGraphicsItem *option);
 
     QByteArray imageAsByteArray() const;
     void setImageAsByteArray(QByteArray image);
     QString fileFilter() const;
 
-    void preparePopUpMenu(QMenu &menu);
+    void preparePopUpMenu(PopupMenu &menu);
     void processPopUpAction(QAction *action);
-    QWidget* defaultEditor();
 
     QString resourcePath() const;
     void setResourcePath(const QString &resourcePath);
@@ -39,7 +38,7 @@ public:
     void setVariable(const QString &variable);
     bool isNeedUpdateSize(RenderPass) const;
 protected:
-    BaseDesignIntf *createSameTypeItem(QObject *owner, QGraphicsItem *parent);
+    BaseDesignIntf *createSameTypeItem(QObject *owner, GraphicsItem *parent);
     void updateItemSize(DataSourceManager *dataManager, RenderPass pass, int maxHeight);
     QByteArray imageFromResource(QString resourcePath);
 private:

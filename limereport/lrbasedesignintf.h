@@ -30,11 +30,9 @@
 #ifndef LRBASEDESIGNINTF_H
 #define LRBASEDESIGNINTF_H
 #include <QObject>
-#include <QFrame>
-#include <QGraphicsItem>
 #include <QtGui>
 #include <QtXml>
-#include <QMenu>
+#include "lrgraphicsscene.h"
 #include "lrcollection.h"
 #include "lrglobal.h"
 #include "serializators/lrstorageintf.h"
@@ -49,11 +47,11 @@ class ReportEnginePrivate;
 class PageDesignIntf;
 class  BaseDesignIntf;
 
-class Marker : public QGraphicsItem{
+class Marker : public GraphicsItem{
 public:
-    Marker(QGraphicsItem* parent = 0, BaseDesignIntf* owner = 0): QGraphicsItem(parent), m_owner(owner){}
+    Marker(GraphicsItem* parent = 0, BaseDesignIntf* owner = 0): GraphicsItem(parent), m_owner(owner){}
     QRectF boundingRect() const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
+    void paint(QPainter *painter, const StyleOptionGraphicsItem *);
     void setRect(QRectF rect){prepareGeometryChange();m_rect=rect;}
     void setColor(QColor color){m_color=color;}
     QRectF rect() const {return m_rect;}
@@ -67,23 +65,22 @@ private:
 
 class SelectionMarker : public Marker{
 public:
-    SelectionMarker(QGraphicsItem* parent=0, BaseDesignIntf* owner = 0);
+    SelectionMarker(GraphicsItem* parent=0, BaseDesignIntf* owner = 0);
     QColor color() const;
 protected:
-    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void hoverMoveEvent(GraphicsSceneHoverEvent *event);
+    void mousePressEvent(GraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(GraphicsSceneMouseEvent *event);
+    void mouseDoubleClickEvent(GraphicsSceneMouseEvent *event);
+    void mouseMoveEvent(GraphicsSceneMouseEvent *event);
 };
 
 class DataSourceManager;
 class ReportRender;
 
 class  BaseDesignIntf :
-        public QObject, public QGraphicsItem, public ICollectionContainer, public ObjectLoadingStateIntf {
+        public QObject, public GraphicsItem, public ICollectionContainer, public ObjectLoadingStateIntf {
     Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
     Q_FLAGS(BorderLines)
     Q_PROPERTY(QRect geometry READ geometry WRITE setGeometryProperty NOTIFY geometryChanged)
     Q_PROPERTY(ACollectionProperty children READ fakeCollectionReader DESIGNABLE false)
@@ -144,7 +141,6 @@ public:
     enum ItemAlign {LeftItemAlign,RightItemAlign,CenterItemAlign,ParentWidthItemAlign,DesignedItemAlign};
 
     enum UnitType {Millimeters, Inches};
-#if QT_VERSION >= 0x050500
     Q_ENUM(BGMode)
     Q_ENUM(BrushStyle)
     Q_ENUM(ResizeFlags)
@@ -153,22 +149,12 @@ public:
     Q_ENUM(ObjectState)
     Q_ENUM(ItemAlign)
     Q_ENUM(UnitType)
-#else
-    Q_ENUMS(BGMode)
-    Q_ENUMS(BrushStyle)
-    Q_ENUMS(ResizeFlags)
-    Q_ENUMS(MoveFlags)
-    Q_ENUMS(BorderSide)
-    Q_ENUMS(ObjectState)
-    Q_ENUMS(ItemAlign)
-    Q_ENUMS(UnitType)
-#endif
 //    enum ExpandType {EscapeSymbols, NoEscapeSymbols, ReplaceHTMLSymbols};
     Q_DECLARE_FLAGS(BorderLines, BorderSide)
     Q_DECLARE_FLAGS(ItemMode,ItemModes)
     friend class SelectionMarker;
 public:
-    BaseDesignIntf(const QString& storageTypeName, QObject* owner = 0, QGraphicsItem* parent = 0);
+    BaseDesignIntf(const QString& storageTypeName, QObject* owner = 0, GraphicsItem* parent = 0);
     virtual ~BaseDesignIntf();
 
     void    setParentReportItem(const QString& value);
@@ -201,8 +187,8 @@ public:
     virtual QSizeF  size() const;
     virtual QSizeF  sizeMM() const;
 
-    void    paint(QPainter* ppainter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-    void    prepareRect(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*);
+    void    paint(QPainter* ppainter, const StyleOptionGraphicsItem* option);
+    void    prepareRect(QPainter* painter, const StyleOptionGraphicsItem*);
     virtual QPainterPath shape() const;
 
     void setFixedPos(bool fixedPos);
@@ -245,18 +231,18 @@ public:
 
     virtual void updateItemSize(DataSourceManager* dataManager, RenderPass pass=FirstPass, int maxHeight=0);
     virtual bool isNeedUpdateSize(RenderPass) const;
-    virtual BaseDesignIntf* cloneItem(LimeReport::BaseDesignIntf::ItemMode mode, QObject* owner=0, QGraphicsItem* parent=0);
-    virtual BaseDesignIntf* cloneItemWOChild(LimeReport::BaseDesignIntf::ItemMode mode, QObject* owner=0, QGraphicsItem* parent=0);
-    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0) = 0;
+    virtual BaseDesignIntf* cloneItem(LimeReport::BaseDesignIntf::ItemMode mode, QObject* owner=0, GraphicsItem* parent=0);
+    virtual BaseDesignIntf* cloneItemWOChild(LimeReport::BaseDesignIntf::ItemMode mode, QObject* owner=0, GraphicsItem* parent=0);
+    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0) = 0;
     void    initFromItem(BaseDesignIntf* source);
 
     virtual bool canBeSplitted(int height) const;
     virtual qreal minHeight() const {return 0;}
     virtual bool isSplittable() const {return false;}
     virtual bool isEmpty() const;
-    virtual BaseDesignIntf* cloneUpperPart(int height, QObject* owner=0, QGraphicsItem* parent=0);
-    virtual BaseDesignIntf* cloneBottomPart(int height, QObject* owner=0, QGraphicsItem* parent=0);
-    virtual BaseDesignIntf* cloneEmpty(int height, QObject* owner=0, QGraphicsItem* parent=0);
+    virtual BaseDesignIntf* cloneUpperPart(int height, QObject* owner=0, GraphicsItem* parent=0);
+    virtual BaseDesignIntf* cloneBottomPart(int height, QObject* owner=0, GraphicsItem* parent=0);
+    virtual BaseDesignIntf* cloneEmpty(int height, QObject* owner=0, GraphicsItem* parent=0);
 
     bool isLoaded(){return m_objectState==ObjectLoaded;}
     bool isLoading(){return m_objectState==ObjectLoading;}
@@ -269,7 +255,6 @@ public:
     QList<BaseDesignIntf*> allChildBaseItems();
     BaseDesignIntf* childByName(const QString& name);
 
-    virtual QWidget *defaultEditor();
     void notify(const QString &propertyName, const QVariant &oldValue, const QVariant &newValue);
     void notify(const QVector<QString> &propertyNames);
 
@@ -341,15 +326,15 @@ protected:
     void collectionLoadFinished(const QString& collectionName);
     //ICollectionContainer
 
-    void  mousePressEvent(QGraphicsSceneMouseEvent* event);
-    void  hoverMoveEvent(QGraphicsSceneHoverEvent* event);
-    void  hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
-    void  hoverEnterEvent(QGraphicsSceneHoverEvent* );
-    void  mouseMoveEvent(QGraphicsSceneMouseEvent* event);
-    void  mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-    void  mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+    void  mousePressEvent(GraphicsSceneMouseEvent* event);
+    void  hoverMoveEvent(GraphicsSceneHoverEvent* event);
+    void  hoverLeaveEvent(GraphicsSceneHoverEvent *event);
+    void  hoverEnterEvent(GraphicsSceneHoverEvent* );
+    void  mouseMoveEvent(GraphicsSceneMouseEvent* event);
+    void  mouseReleaseEvent(GraphicsSceneMouseEvent *event);
+    void  mouseDoubleClickEvent(GraphicsSceneMouseEvent *event);
 
-    void  contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+    void  contextMenuEvent(GraphicsSceneContextMenuEvent *event);
 
     virtual void geometryChangedEvent(QRectF newRect, QRectF oldRect);
     virtual QPen borderPen(BorderSide side) const;
@@ -390,15 +375,13 @@ protected:
 
     QVariant m_varValue;
 
-    virtual void preparePopUpMenu(QMenu& menu){Q_UNUSED(menu)}
+    virtual void preparePopUpMenu(PopupMenu& menu){Q_UNUSED(menu)}
     virtual void processPopUpAction(QAction* action);
 
     void addChildItems(QList<BaseDesignIntf*>* list);
     qreal calcAbsolutePosY(qreal currentOffset, BaseDesignIntf* item);
     qreal calcAbsolutePosX(qreal currentOffset, BaseDesignIntf* item);
 
-    QWidget* findRootWidget(QWidget* widget);
-    void showDialog(QWidget *widget);
 
 private:
     int resizeDirectionFlags(QPointF position);
@@ -493,7 +476,7 @@ signals:
 class BookmarkContainerDesignIntf: public BaseDesignIntf{
     Q_OBJECT
 public:
-    BookmarkContainerDesignIntf(const QString& storageTypeName, QObject* owner = 0, QGraphicsItem* parent = 0)
+    BookmarkContainerDesignIntf(const QString& storageTypeName, QObject* owner = 0, GraphicsItem* parent = 0)
         :BaseDesignIntf(storageTypeName, owner, parent){}
     void addBookmark(const QString& key, const QVariant& value){ m_bookmarks.insert(key, value);}
     QList<QString> bookmarks(){ return m_bookmarks.keys();}

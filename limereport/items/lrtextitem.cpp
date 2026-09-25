@@ -30,18 +30,15 @@
 #include <QtGui>
 #include <QTextLayout>
 #include <QLocale>
-#include <QMessageBox>
 #include <math.h>
 
+#include "lrmessagehub.h"
 #include "lrpagedesignintf.h"
 #include "lrtextitem.h"
 #include "lrdesignelementsfactory.h"
 #include "lrglobal.h"
 #include "lrdatasourcemanager.h"
-#include "lrsimpletagparser.h"
-#include "lrtextitemeditor.h"
 #include "lrreportengine_p.h"
-#include <QMenu>
 
 namespace{
 
@@ -56,7 +53,7 @@ bool VARIABLE_IS_NOT_USED registred = LimeReport::DesignElementsFactory::instanc
 
 namespace LimeReport{
 
-TextItem::TextItem(QObject *owner, QGraphicsItem *parent)
+TextItem::TextItem(QObject *owner, GraphicsItem *parent)
     : ContentItemDesignIntf(xmlTag,owner,parent), m_angle(Angle0), m_trimValue(true), m_allowHTML(false),
       m_allowHTMLInFields(false), m_replaceCarriageReturns(false), m_followTo(""), m_follower(0), m_textIndent(0),
       m_textLayoutDirection(Qt::LayoutDirectionAuto), m_hideIfEmpty(false), m_fontLetterSpacing(0)
@@ -81,7 +78,7 @@ int TextItem::fakeMarginSize() const{
     return marginSize()+5;
 }
 
-void TextItem::preparePopUpMenu(QMenu &menu)
+void TextItem::preparePopUpMenu(PopupMenu &menu)
 {
     QAction* editAction = menu.addAction(QIcon(":/report/images/edit_pecil2.png"),tr("Edit"));
     menu.insertAction(menu.actions().at(0),editAction);
@@ -156,8 +153,7 @@ void TextItem::processPopUpAction(QAction *action)
     ContentItemDesignIntf::processPopUpAction(action);
 }
 
-void TextItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* style, QWidget* widget) {
-    Q_UNUSED(widget);
+void TextItem::paint(QPainter* painter, const StyleOptionGraphicsItem* style) {
     Q_UNUSED(style);
 
 
@@ -166,7 +162,7 @@ void TextItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* style, Q
     painter->save();
 
     setupPainter(painter);
-    prepareRect(painter,style,widget);
+    prepareRect(painter,style);
 
     QSizeF tmpSize = rect().size()-text->size();
 
@@ -273,7 +269,7 @@ void TextItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* style, Q
     }
 
     painter->restore();
-    BaseDesignIntf::paint(painter, style, widget);
+    BaseDesignIntf::paint(painter, style);
 }
 
 QString TextItem::content() const{
@@ -360,14 +356,10 @@ void TextItem::updateLayout()
 
 bool TextItem::isNeedExpandContent() const
 {   
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    QRegExp rx("$*\\{[^{]*\\}");
-#else
     bool result = false;
     QRegularExpression rx("\\$*\\{[^{]*\\}");
     result = content().contains(rx) || isContentBackedUp();
     return result;
-#endif
     return content().contains(rx) || isContentBackedUp();
 }
 
@@ -455,11 +447,7 @@ QString TextItem::formatNumber(const double value)
 
     if (m_format.contains("%"))
     {
-#if QT_VERSION < 0x050500
-        str.sprintf(m_format.toStdString().c_str(), value);
-#else
         str.asprintf(m_format.toStdString().c_str(), value);
-#endif
         str = str.replace(",", QLocale::system().groupSeparator());
         str = str.replace(".", QLocale::system().decimalPoint());
     }
@@ -664,7 +652,7 @@ void TextItem::setFollowTo(const QString &followTo)
                     notify("followTo",oldValue,followTo);
                 } else {
                     m_followTo = "";
-                    QMessageBox::critical(
+                    MessageHub::critical(
                         0,
                         tr("Error"),
                         tr("TextItem \" %1 \" already has folower \" %2 \" ")
@@ -674,7 +662,7 @@ void TextItem::setFollowTo(const QString &followTo)
                     notify("followTo",followTo,"");
                 }
             } else if (m_followTo != ""){
-                QMessageBox::critical(
+                MessageHub::critical(
                     0,
                     tr("Error"),
                     tr("TextItem \" %1 \" not found!")
@@ -824,11 +812,7 @@ void TextItem::expandContent(DataSourceManager* dataManager, RenderPass pass)
 {
     QString context=content();
     foreach (QString variableName, dataManager->variableNamesByRenderPass(SecondPass)) {
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-        QRegExp rx(QString(Const::NAMED_VARIABLE_RX).arg(variableName));
-#else
         QRegularExpression rx(QString(Const::NAMED_VARIABLE_RX).arg(variableName));
-#endif
         if (context.contains(rx) && pass == FirstPass){
             backupContent();
             break;
@@ -959,7 +943,7 @@ void TextItem::restoreLinksEvent()
     }
 }
 
-BaseDesignIntf *TextItem::cloneUpperPart(int height, QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *TextItem::cloneUpperPart(int height, QObject *owner, GraphicsItem *parent)
 {
     TextItem* upperPart = dynamic_cast<TextItem*>(cloneItem(itemMode(),owner,parent));
     upperPart->setContent(getTextPart(height,0));
@@ -968,7 +952,7 @@ BaseDesignIntf *TextItem::cloneUpperPart(int height, QObject *owner, QGraphicsIt
     return upperPart;
 }
 
-BaseDesignIntf *TextItem::cloneBottomPart(int height, QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *TextItem::cloneBottomPart(int height, QObject *owner, GraphicsItem *parent)
 {
     TextItem* bottomPart = dynamic_cast<TextItem*>(cloneItem(itemMode(),owner,parent));
     bottomPart->setContent(getTextPart(0,height));
@@ -977,12 +961,12 @@ BaseDesignIntf *TextItem::cloneBottomPart(int height, QObject *owner, QGraphicsI
     return bottomPart;
 }
 
-BaseDesignIntf *TextItem::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *TextItem::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new TextItem(owner,parent);
 }
 
-BaseDesignIntf *TextItem::cloneEmpty(int height, QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *TextItem::cloneEmpty(int height, QObject *owner, GraphicsItem *parent)
 {
     TextItem* empty=dynamic_cast<TextItem*>(cloneItem(itemMode(),owner,parent));
     empty->setContent("");
@@ -1008,16 +992,6 @@ void TextItem::setTextItemFont(QFont value)
         if (!isLoading()) update();
         notify("font",oldValue,value);
     }
-}
-
-QWidget *TextItem::defaultEditor()
-{
-    QSettings* l_settings = (page()->settings() != 0) ?
-                                 page()->settings() :
-                                 (page()->reportEditor()!=0) ? page()->reportEditor()->settings() : 0;
-    QWidget* editor = new TextItemEditor(this,page(),l_settings);
-    editor->setAttribute(Qt::WA_DeleteOnClose);
-    return editor;
 }
 
 void TextItem::setBackgroundOpacity(int value)

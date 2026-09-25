@@ -132,7 +132,7 @@ void XMLReader::readItemFromNode(QObject* item,QDomElement *node)
 
     BaseDesignIntf* baseObj = dynamic_cast<BaseDesignIntf*>(item);
     if(baseObj) {
-        foreach(QGraphicsItem* childItem,baseObj->childItems()){
+        foreach(GraphicsItem* childItem,baseObj->childItems()){
             BaseDesignIntf* baseItem = dynamic_cast<BaseDesignIntf*>(childItem);
             if (baseItem) baseItem->parentObjectLoadFinished();
         }

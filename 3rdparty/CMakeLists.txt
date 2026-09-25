@@ -66,7 +66,7 @@ if (ENABLE_ZINT)
 
   target_link_libraries(QZint PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Gui
   )
 
   target_compile_definitions(QZint PUBLIC -DQZINT_STATIC_BUILD)

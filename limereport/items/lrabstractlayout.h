@@ -13,12 +13,8 @@ class AbstractLayout: public LayoutDesignIntf
     Q_PROPERTY(int layoutSpacing READ layoutSpacing WRITE setLayoutSpacing)
 public:
     enum LayoutType{Layout,Table};
-#if QT_VERSION >= 0x050500
     Q_ENUM(LayoutType)
-#else
-    Q_ENUMS(LayoutType)
-#endif
-    AbstractLayout(QString xmlTag, QObject *owner = 0, QGraphicsItem *parent = 0);
+    AbstractLayout(QString xmlTag, QObject *owner = 0, GraphicsItem *parent = 0);
     ~AbstractLayout();
     QList<BaseDesignIntf*>& layoutsChildren();
     LayoutMarker* layoutMarker() const;
@@ -32,7 +28,7 @@ public:
     void restoreChild(BaseDesignIntf *item);
     bool isEmpty() const;
     void paintChild(BaseDesignIntf* child, QPointF parentPos, QPainter* painter);
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    void paint(QPainter* painter, const StyleOptionGraphicsItem* option);
 
     bool hideEmptyItems() const;
     void setHideEmptyItems(bool hideEmptyItems);

@@ -50,15 +50,15 @@ class DataBand : public DataBandDesignIntf
     Q_PROPERTY(QColor alternateBackgroundColor READ alternateBackgroundColor WRITE setAlternateBackgroundColor)
     Q_PROPERTY(bool useAlternateBackgroundColor READ useAlternateBackgroundColor WRITE setUseAlternateBackgroundColor)
 public:
-    DataBand(QObject* owner = 0, QGraphicsItem* parent=0);
+    DataBand(QObject* owner = 0, GraphicsItem* parent=0);
     bool isUnique() const;
     bool isData() const {return true;}
 protected:
     QColor bandColor() const;
-    void preparePopUpMenu(QMenu &menu);
+    void preparePopUpMenu(PopupMenu &menu);
     void processPopUpAction(QAction *action);
 private:
-    BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0);
+    BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0);
 };
 
 class DataHeaderBand : public BandDesignIntf
@@ -70,15 +70,15 @@ class DataHeaderBand : public BandDesignIntf
     Q_PROPERTY(bool printAlways READ printAlways WRITE setPrintAlways)
     Q_PROPERTY(bool repeatOnEachRow READ repeatOnEachRow WRITE setRepeatOnEachRow)
 public:
-    DataHeaderBand(QObject* owner=0, QGraphicsItem* parent=0);
+    DataHeaderBand(QObject* owner=0, GraphicsItem* parent=0);
     bool isUnique() const {return false;}
     bool isHeader() const {return true;}
     QColor bandColor() const {return QColor(Qt::darkGreen);}
 protected:
-    void preparePopUpMenu(QMenu &menu);
+    void preparePopUpMenu(PopupMenu &menu);
     void processPopUpAction(QAction *action);
 private:
-    BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0){
+    BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0){
         return new DataHeaderBand(owner,parent);
     }
 };
@@ -91,15 +91,15 @@ class DataFooterBand : public BandDesignIntf
     Q_PROPERTY(BandColumnsLayoutType columnsFillDirection READ columnsFillDirection WRITE setColumnsFillDirection)
     Q_PROPERTY(bool printAlways READ printAlways WRITE setPrintAlways)
 public:
-    DataFooterBand(QObject* owner=0, QGraphicsItem* parent=0);
+    DataFooterBand(QObject* owner=0, GraphicsItem* parent=0);
     bool isUnique() const {return false;}
     bool isFooter() const {return true;}
     QColor bandColor() const{return QColor(Qt::darkGreen);}
 protected:
-    void preparePopUpMenu(QMenu &menu);
+    void preparePopUpMenu(PopupMenu &menu);
     void processPopUpAction(QAction *action);
 private:
-    BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0){
+    BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0){
         return new DataFooterBand(owner,parent);
     }
 };

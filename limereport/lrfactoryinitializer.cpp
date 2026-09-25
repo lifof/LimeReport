@@ -23,7 +23,6 @@
 #endif
 
 
-#ifdef HAVE_REPORT_DESIGNER
 #include "objectinspector/lrobjectpropitem.h"
 #include "objectinspector/propertyItems/lrboolpropitem.h"
 #include "objectinspector/propertyItems/lrcolorpropitem.h"
@@ -40,7 +39,6 @@
 #include "objectinspector/propertyItems/lrstringpropitem.h"
 #include "items/lralignpropitem.h"
 #include "items/lrsubitemparentpropitem.h"
-#endif
 
 #include "serializators/lrxmlbasetypesserializators.h"
 #include "serializators/lrxmlqrectserializator.h"
@@ -52,14 +50,12 @@
 
 void initResources(){
     Q_INIT_RESOURCE(report);
-#ifdef HAVE_REPORT_DESIGNER
     Q_INIT_RESOURCE(lobjectinspector);
     Q_INIT_RESOURCE(lrdatabrowser);
     Q_INIT_RESOURCE(items);
     Q_INIT_RESOURCE(lrscriptbrowser);
     Q_INIT_RESOURCE(translationeditor);
     Q_INIT_RESOURCE(dialogdesigner);
-#endif
 }
 
 namespace LimeReport{
@@ -236,7 +232,6 @@ void initReportItems(){
 
 }
 
-#ifdef HAVE_REPORT_DESIGNER
 
 ObjectPropItem * createBoolPropItem(
     QObject *object, LimeReport::ObjectPropItem::ObjectsList* objects, const QString& name, const QString& displayName, const QVariant& data, LimeReport::ObjectPropItem* parent, bool readonly)
@@ -419,7 +414,6 @@ void initObjectInspectorProperties()
     );
 
 }
-#endif
 SerializatorIntf * createIntSerializator(QDomDocument *doc, QDomElement *node){
     return new LimeReport::XmlIntSerializator(doc,node);
 }

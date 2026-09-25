@@ -67,7 +67,7 @@ bool VARIABLE_IS_NOT_USED registredFooter = LimeReport::DesignElementsFactory::i
 
 namespace LimeReport {
 
-DataBand::DataBand(QObject *owner, QGraphicsItem *parent)
+DataBand::DataBand(QObject *owner, GraphicsItem *parent)
     : DataBandDesignIntf(LimeReport::BandDesignIntf::Data,xmlTag,owner,parent) {
         setBandTypeText(tr("Data"));
         setFixedPos(false);
@@ -84,7 +84,7 @@ QColor DataBand::bandColor() const
     return QColor(Qt::darkGreen);
 }
 
-void DataBand::preparePopUpMenu(QMenu &menu)
+void DataBand::preparePopUpMenu(PopupMenu &menu)
 {
     BandDesignIntf::preparePopUpMenu(menu);
 
@@ -144,19 +144,19 @@ void DataBand::processPopUpAction(QAction *action)
     }
 }
 
-BaseDesignIntf *DataBand::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *DataBand::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new DataBand(owner,parent);
 }
 
-DataHeaderBand::DataHeaderBand(QObject *owner, QGraphicsItem *parent)
+DataHeaderBand::DataHeaderBand(QObject *owner, GraphicsItem *parent)
     :BandDesignIntf(BandDesignIntf::DataHeader,xmlTagHeader,owner,parent)
 {
     setBandTypeText(tr("DataHeader"));
     setMarkerColor(bandColor());
 }
 
-void DataHeaderBand::preparePopUpMenu(QMenu &menu)
+void DataHeaderBand::preparePopUpMenu(PopupMenu &menu)
 {
     BandDesignIntf::preparePopUpMenu(menu);
     QAction* currAction = menu.addAction(tr("Reprint on each page"));
@@ -188,14 +188,14 @@ void DataHeaderBand::processPopUpAction(QAction *action)
     }
 }
 
-DataFooterBand::DataFooterBand(QObject *owner, QGraphicsItem *parent)
+DataFooterBand::DataFooterBand(QObject *owner, GraphicsItem *parent)
     :BandDesignIntf(BandDesignIntf::DataFooter,xmlTagFooter,owner,parent)
 {
     setBandTypeText(tr("DataFooter"));
     setMarkerColor(bandColor());
 }
 
-void DataFooterBand::preparePopUpMenu(QMenu &menu)
+void DataFooterBand::preparePopUpMenu(PopupMenu &menu)
 {
     BandDesignIntf::preparePopUpMenu(menu);
     QAction* currAction = menu.addAction(tr("Print always"));

@@ -42,8 +42,8 @@ class PageFooter : public BandDesignIntf
     Q_PROPERTY(bool printOnLastPage READ printOnLastPage WRITE setPrintOnLastPage)
     Q_PROPERTY(bool removeGap READ removeGap WRITE setRemoveGap)
 public:
-    PageFooter(QObject* owner = 0, QGraphicsItem* parent=0);
-    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0);
+    PageFooter(QObject* owner = 0, GraphicsItem* parent=0);
+    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0);
     virtual bool isFooter() const {return true;}
     bool printOnLastPage() const;
     void setPrintOnLastPage(bool printOnLastPage);
@@ -54,7 +54,7 @@ public:
 
 protected:
     QColor  bandColor() const;
-    void    preparePopUpMenu(QMenu &menu);
+    void    preparePopUpMenu(PopupMenu &menu);
     void    processPopUpAction(QAction *action);
 private:
     bool m_printOnFirstPage;

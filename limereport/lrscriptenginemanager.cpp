@@ -32,15 +32,6 @@
 #include <QDate>
 #include <QStringList>
 #include <QUuid>
-#ifdef USE_QTSCRIPTENGINE
-#include <QScriptValueIterator>
-#endif
-#include <QMessageBox>
-#ifdef HAVE_UI_LOADER
-#include <QUiLoader>
-#include <QBuffer>
-#include <QWidget>
-#endif
 #include "lrdatasourcemanager.h"
 #include "lrbasedesignintf.h"
 #include "lrbanddesignintf.h"
@@ -50,13 +41,6 @@ Q_DECLARE_METATYPE(QColor)
 Q_DECLARE_METATYPE(QFont)
 Q_DECLARE_METATYPE(LimeReport::ScriptEngineManager *)
 
-#ifdef USE_QTSCRIPTENGINE
-QScriptValue constructColor(QScriptContext *context, QScriptEngine *engine)
-{
-     QColor color(context->argument(0).toString());
-     return engine->toScriptValue(color);
-}
-#endif
 
 namespace LimeReport{
 
@@ -235,11 +219,7 @@ bool ScriptEngineManager::addFunction(const JSFunctionDesc &functionDescriber)
 {
     if (m_functions.contains(functionDescriber.name())) return false;
     ScriptValueType functionManager = scriptEngine()->globalObject().property(functionDescriber.managerName());
-#ifdef USE_QJSENGINE
     if (functionManager.isUndefined()){
-#else
-    if (!functionManager.isValid()){
-#endif
         functionManager = scriptEngine()->newQObject(functionDescriber.manager());
         scriptEngine()->globalObject().setProperty(
                     functionDescriber.managerName(),
@@ -270,34 +250,6 @@ bool ScriptEngineManager::addFunction(const JSFunctionDesc &functionDescriber)
 
 }
 
-#ifdef USE_QTSCRIPTENGINE
-#if QT_VERSION > 0x050600
-Q_DECL_DEPRECATED
-#endif
-bool ScriptEngineManager::addFunction(const QString& name,
-                                              QScriptEngine::FunctionSignature function,
-                                              const QString& category,
-                                              const QString& description)
-{
-    if (!isFunctionExists(name)){
-        ScriptFunctionDesc funct;
-        funct.name = name;
-        funct.description = description;
-        funct.category = category;
-        funct.scriptValue = scriptEngine()->newFunction(function);
-        funct.scriptValue.setProperty("functionName", name);
-        funct.scriptValue.setData(m_scriptEngine->toScriptValue(this));
-        funct.type = ScriptFunctionDesc::Native;
-        m_functions.insert(name, funct);
-        if (m_model)
-            m_model->updateModel();
-        m_scriptEngine->globalObject().setProperty(funct.name, funct.scriptValue);
-        return true;
-    } else {
-        return false;
-    }
-}
-#endif
 
 bool ScriptEngineManager::addFunction(const QString& name, const QString& script, const QString& category, const QString& description)
 {
@@ -354,50 +306,6 @@ void ScriptEngineManager::setDataManager(DataSourceManager *dataManager){
 
 QString ScriptEngineManager::expandUserVariables(QString context, RenderPass /* pass */, ExpandType expandType, QVariant &varValue)
 {
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    QRegExp rx(Const::VARIABLE_RX);
-    if (context.contains(rx)){
-        int pos = 0;
-        while ((pos = rx.indexIn(context,pos))!=-1){
-            QString variable=rx.cap(1);
-            pos += rx.matchedLength();
-            if (dataManager()->containsVariable(variable) ){
-                try {
-
-                    varValue = dataManager()->variable(variable);
-                    switch (expandType){
-                    case EscapeSymbols:
-                        context.replace(rx.cap(0),escapeSimbols(varValue.toString()));
-                    break;
-                    case NoEscapeSymbols:
-                        context.replace(rx.cap(0),varValue.toString());
-                    break;
-                    case ReplaceHTMLSymbols:
-                        context.replace(rx.cap(0),replaceHTMLSymbols(varValue.toString()));
-                    break;
-                    }
-                    pos=0;
-
-                } catch (ReportError &e){
-                    dataManager()->putError(e.what());
-                    if (!dataManager()->reportSettings() || dataManager()->reportSettings()->suppressAbsentFieldsAndVarsWarnings())
-                        context.replace(rx.cap(0),e.what());
-                    else
-                        context.replace(rx.cap(0),"");
-                }
-            } else {
-                QString error;
-                error = tr("Variable %1 not found").arg(variable);
-                dataManager()->putError(error);
-                if (!dataManager()->reportSettings() || dataManager()->reportSettings()->suppressAbsentFieldsAndVarsWarnings())
-                    context.replace(rx.cap(0),error);
-                else
-                    context.replace(rx.cap(0),"");
-            }
-        }
-    }
-    return context;
-#else
     QRegularExpression rx(Const::VARIABLE_RX);
     if (context.contains(rx)){
          int pos = 0;
@@ -447,63 +355,10 @@ QString ScriptEngineManager::expandUserVariables(QString context, RenderPass /* 
          }
      }
      return context;
-#endif
 }
 
 QString ScriptEngineManager::expandDataFields(QString context, ExpandType expandType, QVariant &varValue, QObject *reportItem)
 {
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    QRegExp rx(Const::FIELD_RX);
-
-    if (context.contains(rx)){
-        while ((rx.indexIn(context))!=-1){
-            QString field=rx.cap(1);
-
-            if (dataManager()->containsField(field)) {
-                QString fieldValue;
-                varValue = dataManager()->fieldData(field);
-                if (expandType == EscapeSymbols) {
-                    if (varValue.isNull()) {
-                        fieldValue="\"\"";
-                    } else {
-                        fieldValue = escapeSimbols(varValue.toString());
-                        switch (dataManager()->fieldData(field).type()) {
-                        case QVariant::Char:
-                        case QVariant::String:
-                        case QVariant::StringList:
-                        case QVariant::Date:
-                        case QVariant::DateTime:
-                            fieldValue = "\""+fieldValue+"\"";
-                            break;
-                        default:
-                            break;
-                        }
-                    }
-                } else {
-                    if (expandType == ReplaceHTMLSymbols)
-                        fieldValue = replaceHTMLSymbols(varValue.toString());
-                    else fieldValue = varValue.toString();
-                }
-
-                context.replace(rx.cap(0),fieldValue);
-
-            } else {
-                QString error;
-                if (reportItem){
-                    error = tr("Field %1 not found in %2!").arg(field).arg(reportItem->objectName());
-                    dataManager()->putError(error);
-                }
-                varValue = QVariant();
-                if (!dataManager()->reportSettings() || !dataManager()->reportSettings()->suppressAbsentFieldsAndVarsWarnings())
-                    context.replace(rx.cap(0),error);
-                else
-                    context.replace(rx.cap(0),"");
-            }
-        }
-    }
-
-    return context;
-#else
     QRegularExpression rx(Const::FIELD_RX);
 
     if (context.contains(rx)){
@@ -557,20 +412,13 @@ QString ScriptEngineManager::expandDataFields(QString context, ExpandType expand
     }
 
     return context;
-#endif
 }
 
 QString ScriptEngineManager::expandScripts(QString context, QVariant& varValue, QObject *reportItem)
 {
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    QRegExp rx(Const::SCRIPT_RX);
-
-    if (context.contains(rx)){
-#else
     QRegularExpression rx(Const::SCRIPT_RX, QRegularExpression::DotMatchesEverythingOption);
 
     if(context.contains(rx)){
-#endif
 
         if (ScriptEngineManager::instance().dataManager() != dataManager())
             ScriptEngineManager::instance().setDataManager(dataManager());
@@ -579,18 +427,8 @@ QString ScriptEngineManager::expandScripts(QString context, QVariant& varValue, 
 
         if (reportItem){
             ScriptValueType svThis;
-#ifdef USE_QJSENGINE
             svThis = getJSValue(*se, reportItem);
             se->globalObject().setProperty("THIS",svThis);
-#else
-            svThis = se->globalObject().property("THIS");
-            if (svThis.isValid()){
-                se->newQObject(svThis, reportItem);
-            } else {
-                svThis = se->newQObject(reportItem);
-                se->globalObject().setProperty("THIS",svThis);
-            }
-#endif
         }
 
         ScriptExtractor scriptExtractor(context);
@@ -610,38 +448,22 @@ QString ScriptEngineManager::replaceScripts(QString context, QVariant &varValue,
             scriptBody = replaceScripts(scriptBody, varValue, reportItem, se, item);
         scriptBody = expandUserVariables(scriptBody, FirstPass, EscapeSymbols, varValue);
         ScriptValueType value = se->evaluate(scriptBody);
-#ifdef USE_QJSENGINE
         if (!value.isError()){
             varValue = value.toVariant();
             context.replace(item->script(), value.toString());
         } else {
             context.replace(item->script(), value.toString());
         }
-#else
-        if (!se->hasUncaughtException()) {
-            varValue = value.toVariant();
-            context.replace(item->script(), value.toString());
-        } else {
-            context.replace(item->script(), se->uncaughtException().toString());
-        }
-#endif
     }
     return context;
 }
 
 QVariant ScriptEngineManager::evaluateScript(const QString& script){
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    QRegExp rx(Const::SCRIPT_RX);
-    QVariant varValue;
-
-    if (script.contains(rx)){
-#else
     QRegularExpression rx(Const::SCRIPT_RX);
     QVariant varValue;
 
     if (script.contains(rx)){
-#endif
 
         if (ScriptEngineManager::instance().dataManager()!=dataManager())
             ScriptEngineManager::instance().setDataManager(dataManager());
@@ -653,11 +475,7 @@ QVariant ScriptEngineManager::evaluateScript(const QString& script){
             QString scriptBody = expandDataFields(scriptExtractor.scriptTree()->body(), EscapeSymbols, varValue, 0);
             scriptBody = expandUserVariables(scriptBody, FirstPass, EscapeSymbols, varValue);
             ScriptValueType value = se->evaluate(scriptBody);
-#ifdef USE_QJSENGINE
             if (!value.isError()){
-#else
-            if (!se->hasUncaughtException()) {
-#endif
                 return value.toVariant();
             }
         }
@@ -1062,10 +880,6 @@ ScriptEngineManager::ScriptEngineManager()
     m_scriptEngine = new ScriptEngineType;
     m_functionManager = new ScriptFunctionsManager(this);
     m_functionManager->setScriptEngineManager(this);
-#ifdef USE_QTSCRIPTENGINE
-    m_scriptEngine->setDefaultPrototype(qMetaTypeId<QComboBox*>(),
-                                  m_scriptEngine->newQObject(new ComboBoxPrototype()));
-#endif
     createLineFunction();
     createNumberFomatFunction();
     createDateFormatFunction();
@@ -1074,24 +888,13 @@ ScriptEngineManager::ScriptEngineManager()
     createSectotimeFormatFunction();
     createDateFunction();
     createNowFunction();
-#if QT_VERSION>0x040800
     createCurrencyFormatFunction();
     createCurrencyUSBasedFormatFunction();
-#endif
     createSetVariableFunction();
     createGetFieldFunction();
     createGetFieldByRowIndex();
     createGetFieldByKeyFunction();
     createGetVariableFunction();
-#ifdef USE_QTSCRIPTENGINE
-    QScriptValue colorCtor = m_scriptEngine->newFunction(constructColor);
-    m_scriptEngine->globalObject().setProperty("QColor", colorCtor);
-
-    QScriptValue fontProto(m_scriptEngine->newQObject(new QFontPrototype,QScriptEngine::ScriptOwnership));
-    m_scriptEngine->setDefaultPrototype(qMetaTypeId<QFont>(), fontProto);
-    QScriptValue fontConstructor = m_scriptEngine->newFunction(QFontPrototype::constructorQFont, fontProto);
-    m_scriptEngine->globalObject().setProperty("QFont", fontConstructor);
-#endif
     createAddBookmarkFunction();
     createFindPageIndexByBookmark();
     createAddTableOfContentsItemFunction();
@@ -1229,109 +1032,9 @@ void DialogDescriber::setDescription(const QByteArray &description)
     m_description = description;
 }
 
-#ifdef HAVE_UI_LOADER
-void ScriptEngineContext::addDialog(const QString& name, const QByteArray& description)
-{
-    m_dialogs.push_back(DialogDescriber::create(name,description));
-    emit dialogAdded(name);
-}
-
-bool ScriptEngineContext::changeDialog(const QString& name, const QByteArray& description)
-{
-    foreach( DialogDescriber::Ptr describer, m_dialogs){
-        if (describer->name().compare(name) == 0){
-            describer->setDescription(description);
-            {
-                QList<DialogPtr>::Iterator it = m_createdDialogs.begin();
-                while(it!=m_createdDialogs.end()){
-                    if ((*it)->objectName()==name){
-                        it = m_createdDialogs.erase(it);
-                    } else {
-                        ++it;
-                    }
-                }
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-bool ScriptEngineContext::changeDialogName(const QString& oldName, const QString& newName)
-{
-    foreach( DialogDescriber::Ptr describer, m_dialogs){
-        if (describer->name().compare(oldName) == 0){
-            describer->setName(newName);
-            {
-                QList<DialogPtr>::Iterator it = m_createdDialogs.begin();
-                while(it!=m_createdDialogs.end()){
-                    if ((*it)->objectName()==oldName){
-                        it = m_createdDialogs.erase(it);
-                    } else {
-                        ++it;
-                    }
-                }
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-bool ScriptEngineContext::previewDialog(const QString& dialogName)
-{
-    QDialog* dialog = getDialog(dialogName);
-    if (dialog) {
-        dialog->exec();
-        return true;
-    } else {
-        m_lastError = tr("Dialog with name: %1 can`t be created").arg(dialogName);
-        return false;
-    }
-}
-
-bool ScriptEngineContext::containsDialog(const QString& dialogName)
-{
-    foreach(DialogDescriber::Ptr dialog, m_dialogs){
-        if (dialog->name()==dialogName)
-            return true;
-    }
-    return false;
-}
-
-void ScriptEngineContext::deleteDialog(const QString& dialogName)
-{
-    {
-        QVector<DialogDescriber::Ptr>::Iterator it = m_dialogs.begin();
-        while(it!=m_dialogs.end()){
-            if ((*it)->name()==dialogName){
-                it = m_dialogs.erase(it);
-                emit dialogDeleted(dialogName);
-            } else {
-                ++it;
-            }
-        }
-    }
-    {
-        QList<DialogPtr>::Iterator it = m_createdDialogs.begin();
-        while(it!=m_createdDialogs.end()){
-            if ((*it)->objectName()==dialogName){
-                it = m_createdDialogs.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-}
-
-#endif
 
 void ScriptEngineContext::clear()
 {
-#ifdef HAVE_UI_LOADER
-    m_dialogs.clear();
-    m_createdDialogs.clear();
-#endif
     m_initScript.clear();
     m_tableOfContents->clear();
     m_lastError="";
@@ -1340,39 +1043,20 @@ void ScriptEngineContext::clear()
 QObject* ScriptEngineContext::createElement(const QString& collectionName, const QString& elementType)
 {
     Q_UNUSED(elementType)
-#ifdef HAVE_UI_LOADER
-    if (collectionName.compare("dialogs",Qt::CaseInsensitive)==0){
-        m_dialogs.push_back(DialogDescriber::create());
-        return m_dialogs.at(m_dialogs.count()-1).data();
-    }
-#else
     Q_UNUSED(collectionName)
-#endif
     return 0;
 }
 
 int ScriptEngineContext::elementsCount(const QString& collectionName)
 {
-#ifdef HAVE_UI_LOADER
-    if (collectionName.compare("dialogs",Qt::CaseInsensitive)==0){
-        return m_dialogs.count();
-    };
-#else
     Q_UNUSED(collectionName)
-#endif
     return 0;
 }
 
 QObject* ScriptEngineContext::elementAt(const QString& collectionName, int index)
 {
-#ifdef HAVE_UI_LOADER
-    if (collectionName.compare("dialogs",Qt::CaseInsensitive)==0){
-        return m_dialogs.at(index).data();
-    };
-#else
     Q_UNUSED(collectionName)
     Q_UNUSED(index)
-#endif
     return 0;
 }
 
@@ -1391,40 +1075,36 @@ void ScriptEngineContext::setReportPages(ReportPages *value)
     m_reportPages = value;
 }
 
-#ifdef HAVE_UI_LOADER
-QDialog* ScriptEngineContext::createDialog(DialogDescriber* cont)
-{
-    QUiLoader loader;
-    QByteArray desc = cont->description();
-    QBuffer buffer(&desc);
-    buffer.open(QIODevice::ReadOnly);
-    QDialog* dialog = dynamic_cast<QDialog*>(loader.load(&buffer));
-    m_createdDialogs.push_back(QSharedPointer<QDialog>(dialog));
-    if (cont->name().compare(dialog->objectName())){
-        cont->setName(dialog->objectName());
-        emit dialogNameChanged(dialog->objectName());
-    }
-    return dialog;
-}
 
-QDialog* ScriptEngineContext::findDialog(const QString& dialogName)
+void ScriptEngineContext::baseDesignIntfToScript(const QString& pageName, BaseDesignIntf* item)
 {
-    foreach(DialogPtr dialog, m_createdDialogs){
-        if (dialog->objectName()==dialogName)
-            return dialog.data();
-    }
-    return 0;
-}
+    if ( item ) {
+        if (item->metaObject()->indexOfSignal("beforeRender()")!=-1)
+            item->disconnect(SIGNAL(beforeRender()));
+        if (item->metaObject()->indexOfSignal("afterData()")!=-1)
+            item->disconnect(SIGNAL(afterData()));
+        if (item->metaObject()->indexOfSignal("afterRender()")!=-1)
+            item->disconnect(SIGNAL(afterRender()));
 
-DialogDescriber* ScriptEngineContext::findDialogContainer(const QString& dialogName)
-{
-    foreach (DialogDescriber::Ptr dialogCont , m_dialogs) {
-        if (dialogCont->name().compare(dialogName,Qt::CaseInsensitive)==0){
-            return dialogCont.data();
+        ScriptEngineType* engine = ScriptEngineManager::instance().scriptEngine();
+
+        ScriptValueType sItem = getJSValue(*engine, item);
+        QString on = item->patternName().compare(pageName) == 0 ? pageName : pageName+"_"+item->patternName();
+        engine->globalObject().setProperty(on, sItem);
+        foreach(BaseDesignIntf* child, item->childBaseItems()){
+            baseDesignIntfToScript(pageName, child);
         }
     }
-    return 0;
 }
+
+void ScriptEngineContext::qobjectToScript(const QString& name, QObject *item)
+{
+    ScriptEngineType* engine = ScriptEngineManager::instance().scriptEngine();
+        ScriptValueType sItem = getJSValue(*engine, item);
+        engine->globalObject().setProperty(name, sItem);
+}
+
+
 
 TableOfContents* ScriptEngineContext::tableOfContents() const
 {
@@ -1457,112 +1137,6 @@ void ScriptEngineContext::setCurrentBand(BandDesignIntf* currentBand)
     m_currentBand = currentBand;
 }
 
-QDialog* ScriptEngineContext::getDialog(const QString& dialogName)
-{
-    QDialog* dialog = findDialog(dialogName);
-    if (dialog){
-        return dialog;
-    } else {
-        DialogDescriber* cont = findDialogContainer(dialogName);
-        if (cont){
-            dialog = createDialog(cont);
-            if (dialog)
-                return dialog;
-        }
-    }
-    return 0;
-}
-
-QString ScriptEngineContext::getNewDialogName()
-{
-    QString result = "Dialog";
-    int index = m_dialogs.size() - 1;
-    while (containsDialog(result)){
-        index++;
-        result = QString("Dialog%1").arg(index);
-    }
-    return result;
-}
-
-#endif
-
-void ScriptEngineContext::baseDesignIntfToScript(const QString& pageName, BaseDesignIntf* item)
-{
-    if ( item ) {
-        if (item->metaObject()->indexOfSignal("beforeRender()")!=-1)
-            item->disconnect(SIGNAL(beforeRender()));
-        if (item->metaObject()->indexOfSignal("afterData()")!=-1)
-            item->disconnect(SIGNAL(afterData()));
-        if (item->metaObject()->indexOfSignal("afterRender()")!=-1)
-            item->disconnect(SIGNAL(afterRender()));
-
-        ScriptEngineType* engine = ScriptEngineManager::instance().scriptEngine();
-
-#ifdef USE_QJSENGINE
-        ScriptValueType sItem = getJSValue(*engine, item);
-        QString on = item->patternName().compare(pageName) == 0 ? pageName : pageName+"_"+item->patternName();
-        engine->globalObject().setProperty(on, sItem);
-#else
-        QString on = item->patternName().compare(pageName) == 0 ? pageName : pageName+"_"+item->patternName();
-        ScriptValueType sItem = engine->globalObject().property(on);
-        if (sItem.isValid()){
-            engine->newQObject(sItem, item);
-        } else {
-            sItem = engine->newQObject(item);
-            engine->globalObject().setProperty(on,sItem);
-        }
-#endif
-        foreach(BaseDesignIntf* child, item->childBaseItems()){
-            baseDesignIntfToScript(pageName, child);
-        }
-    }
-}
-
-void ScriptEngineContext::qobjectToScript(const QString& name, QObject *item)
-{
-    ScriptEngineType* engine = ScriptEngineManager::instance().scriptEngine();
-#ifdef USE_QJSENGINE
-        ScriptValueType sItem = getJSValue(*engine, item);
-        engine->globalObject().setProperty(name, sItem);
-#else
-        ScriptValueType sItem = engine->globalObject().property(name);
-        if (sItem.isValid()){
-            engine->newQObject(sItem, item);
-        } else {
-            sItem = engine->newQObject(item);
-            engine->globalObject().setProperty(name,sItem);
-        }
-#endif
-}
-
-#ifdef HAVE_UI_LOADER
-
-#ifdef USE_QJSENGINE
-void registerChildObjects(ScriptEngineType* se, ScriptValueType* root, QObject* currObj){
-    foreach(QObject* obj, currObj->children()){
-        if (!obj->objectName().isEmpty()){
-            ScriptValueType child = se->newQObject(obj);
-            root->setProperty(obj->objectName(),child);
-        }
-        registerChildObjects(se, root, obj);
-    }
-}
-#endif
-
-void ScriptEngineContext::initDialogs(){
-    ScriptEngineType* se = ScriptEngineManager::instance().scriptEngine();
-    foreach(DialogDescriber::Ptr dialog, dialogDescribers()){
-        ScriptValueType sv = se->newQObject(getDialog(dialog->name()));
-#ifdef USE_QJSENGINE
-        registerChildObjects(se, &sv, sv.toQObject());
-#endif
-        se->globalObject().setProperty(dialog->name(),sv);
-    }
-}
-
-#endif
-
-
 bool ScriptEngineContext::runInitScript(){
 
     ScriptEngineType* engine = ScriptEngineManager::instance().scriptEngine();
@@ -1571,23 +1145,12 @@ bool ScriptEngineContext::runInitScript(){
 
     ScriptValueType res = engine->evaluate(initScript());
     if (res.isBool()) return res.toBool();
-#ifdef  USE_QJSENGINE
     if (res.isError()){
-        QMessageBox::critical(0,tr("Error"),
-            QString("Line %1: %2 ").arg(res.property("lineNumber").toString())
-                                   .arg(res.toString())
-        );
+        m_lastError = QString("Line %1: %2 ").arg(res.property("lineNumber").toString())
+                                             .arg(res.toString());
+        qWarning() << tr("Error") << m_lastError;
         return false;
     }
-#else
-    if (engine->hasUncaughtException()) {
-        QMessageBox::critical(0,tr("Error"),
-            QString("Line %1: %2 ").arg(engine->uncaughtExceptionLineNumber())
-                                   .arg(engine->uncaughtException().toString())
-        );
-        return false;
-    }
-#endif
     return true;
 }
 
@@ -1846,33 +1409,6 @@ QFont ScriptFunctionsManager::font(const QString &family, int pointSize, bool it
     return result;
 }
 
-#ifdef USE_QJSENGINE
-
-void ScriptFunctionsManager::addItemsToComboBox(QJSValue object, const QStringList &values)
-{
-    QComboBox* comboBox = dynamic_cast<QComboBox*>(object.toQObject());
-    if (comboBox){
-        comboBox->addItems(values);
-    }
-}
-
-void ScriptFunctionsManager::addItemToComboBox(QJSValue object, const QString &value)
-{
-    QComboBox* comboBox = dynamic_cast<QComboBox*>(object.toQObject());
-    if (comboBox){
-        comboBox->addItem(value);
-    }
-}
-
-QJSValue ScriptFunctionsManager::createComboBoxWrapper(QJSValue comboBox)
-{
-    QComboBox* item = dynamic_cast<QComboBox*>(comboBox.toQObject());
-    if (item){
-        ComboBoxWrapper* wrapper = new ComboBoxWrapper(item);
-        return m_scriptEngineManager->scriptEngine()->newQObject(wrapper);
-    }
-    return QJSValue();
-}
 
 QJSValue ScriptFunctionsManager::createWrapper(QJSValue item)
 {
@@ -1886,47 +1422,6 @@ QJSValue ScriptFunctionsManager::createWrapper(QJSValue item)
     return QJSValue();
 }
 
-#else
-
-void ScriptFunctionsManager::addItemsToComboBox(QScriptValue object, const QStringList &values)
-{
-    QComboBox* comboBox = dynamic_cast<QComboBox*>(object.toQObject());
-    if (comboBox){
-        comboBox->addItems(values);
-    }
-}
-
-void ScriptFunctionsManager::addItemToComboBox(QScriptValue object, const QString &value)
-{
-    QComboBox* comboBox = dynamic_cast<QComboBox*>(object.toQObject());
-    if (comboBox){
-        comboBox->addItem(value);
-    }
-}
-
-QScriptValue ScriptFunctionsManager::createComboBoxWrapper(QScriptValue comboBox)
-{
-    QComboBox* item = dynamic_cast<QComboBox*>(comboBox.toQObject());
-    if (item){
-        ComboBoxWrapper* wrapper = new ComboBoxWrapper(item);
-        return m_scriptEngineManager->scriptEngine()->newQObject(wrapper);
-    }
-    return QScriptValue();
-}
-
-QScriptValue ScriptFunctionsManager::createWrapper(QScriptValue item)
-{
-    QObject* object = item.toQObject();
-    if (object){
-        IWrapperCreator* wrapper = m_wrappersFactory.value(object->metaObject()->className());
-        if (wrapper){
-            return m_scriptEngineManager->scriptEngine()->newQObject(wrapper->createWrapper(item.toQObject()));
-        }
-    }
-    return QScriptValue();
-}
-
-#endif
 
 QFont ScriptFunctionsManager::font(QVariantMap params){
     if (!params.contains("family")){
@@ -2020,15 +1515,6 @@ void LimeReport::TableOfContents::clear(){
     }
     m_tableOfContents.clear();
 
-}
-
-QObject* ComboBoxWrapperCreator::createWrapper(QObject *item)
-{
-    QComboBox* comboBox = dynamic_cast<QComboBox*>(item);
-    if (comboBox){
-        return  new ComboBoxWrapper(comboBox);
-    }
-    return 0;
 }
 
 bool DatasourceFunctions::first(const QString& datasourceName)
@@ -2158,23 +1644,6 @@ void TableBuilder::checkBaseLayout()
     }
 }
 
-#ifdef USE_QTSCRIPTENGINE
-void ComboBoxPrototype::addItem(const QString &text)
-{
-    QComboBox* comboBox = qscriptvalue_cast<QComboBox*>(thisObject());
-    if (comboBox){
-        comboBox->addItem(text);
-    }
-}
-
-void ComboBoxPrototype::addItems(const QStringList &texts)
-{
-    QComboBox* comboBox = qscriptvalue_cast<QComboBox*>(thisObject());
-    if (comboBox){
-        comboBox->addItems(texts);
-    }
-}
-#endif
 
 } //namespace LimeReport
 

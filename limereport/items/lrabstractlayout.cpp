@@ -2,7 +2,7 @@
 
 namespace LimeReport {
 
-AbstractLayout::AbstractLayout(QString xmlTag, QObject* owner, QGraphicsItem* parent)
+AbstractLayout::AbstractLayout(QString xmlTag, QObject* owner, GraphicsItem* parent)
     : LayoutDesignIntf(xmlTag, owner, parent), m_isRelocating(false), m_layoutType(Layout),
     m_hideEmptyItems(false), m_layoutSpacing(0)
 {
@@ -95,7 +95,7 @@ bool AbstractLayout::isEmpty() const
 {
     bool isEmpty = true;
     bool allItemsIsText = true;
-    foreach (QGraphicsItem* qgItem, childItems()) {
+    foreach (GraphicsItem* qgItem, childItems()) {
         ContentItemDesignIntf* item = dynamic_cast<ContentItemDesignIntf*>(qgItem);
         if (item && !item->content().isEmpty()) isEmpty = false;
         if (!item && dynamic_cast<BaseDesignIntf*>(qgItem))
@@ -119,7 +119,7 @@ void AbstractLayout::paintChild(BaseDesignIntf *child, QPointF parentPos, QPaint
     );
 }
 
-void AbstractLayout::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void AbstractLayout::paint(QPainter* painter, const StyleOptionGraphicsItem* option)
 {
     if (isSelected()){
         painter->save();
@@ -129,7 +129,7 @@ void AbstractLayout::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
         }
         painter->restore();
     }
-    LayoutDesignIntf::paint(painter, option, widget);
+    LayoutDesignIntf::paint(painter, option);
 }
 
 int AbstractLayout::childrenCount()
@@ -139,11 +139,7 @@ int AbstractLayout::childrenCount()
 
 void AbstractLayout::beforeDelete()
 {
-#ifdef HAVE_QT5
-    foreach (QObject *item, children()) {
-#else
     foreach (QObject *item, QObject::children()) {
-#endif
         BaseDesignIntf *bi = dynamic_cast<BaseDesignIntf*>(item);
         if (bi) {
             bi->disconnect(this);
@@ -193,11 +189,7 @@ void AbstractLayout::collectionLoadFinished(const QString& collectionName)
 {
     ItemDesignIntf::collectionLoadFinished(collectionName);
     if (collectionName.compare("children",Qt::CaseInsensitive)==0){
-#ifdef HAVE_QT5
-        foreach(QObject* obj, children()){
-#else
         foreach(QObject* obj,QObject::children()){
-#endif
             BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(obj);
             if (item) {
                 addChild(item,false);
@@ -218,9 +210,9 @@ bool AbstractLayout::isNeedUpdateSize(RenderPass pass) const
     return true;
 }
 
-QVariant AbstractLayout::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+QVariant AbstractLayout::itemChange(GraphicsItem::GraphicsItemChange change, const QVariant& value)
 {
-    if (change == QGraphicsItem::ItemSelectedHasChanged){
+    if (change == GraphicsItem::ItemSelectedHasChanged){
         setIsRelocating(true);
         foreach(BaseDesignIntf* item, layoutsChildren()){
             item->setVisible(!value.toBool());
@@ -234,7 +226,7 @@ void AbstractLayout::updateItemSize(DataSourceManager* dataManager, RenderPass p
 {
     setIsRelocating(true);
     ItemDesignIntf::updateItemSize(dataManager, pass, maxHeight);
-    foreach(QGraphicsItem *child, childItems()){
+    foreach(GraphicsItem *child, childItems()){
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(child);
         if (item && item->isNeedUpdateSize(pass))
             item->updateItemSize(dataManager, pass, maxHeight);

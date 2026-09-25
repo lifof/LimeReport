@@ -47,13 +47,13 @@ bool VARIABLE_IS_NOT_USED registred = LimeReport::DesignElementsFactory::instanc
 
 namespace LimeReport{
 
-ReportFooter::ReportFooter(QObject *owner, QGraphicsItem *parent)
+ReportFooter::ReportFooter(QObject *owner, GraphicsItem *parent)
     : BandDesignIntf(LimeReport::BandDesignIntf::ReportFooter,xmlTag,owner,parent) {
     setBandTypeText(tr("Report Footer"));
     setMarkerColor(bandColor());
 }
 
-BaseDesignIntf *ReportFooter::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *ReportFooter::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new ReportFooter(owner,parent);
 }

@@ -1,15 +1,13 @@
 #include "lrlayoutmarker.h"
-#include <QGraphicsSceneMouseEvent>
-#include <QGraphicsScene>
 
 namespace LimeReport{
 
-LayoutMarker::LayoutMarker(BaseDesignIntf* layout, QGraphicsItem *parent)
-    :QGraphicsItem(parent), m_rect(0,0,30,30), m_color(Qt::red), m_layout(layout){
-    setFlag(QGraphicsItem::ItemIsMovable);
+LayoutMarker::LayoutMarker(BaseDesignIntf* layout, GraphicsItem *parent)
+    :GraphicsItem(parent), m_rect(0,0,30,30), m_color(Qt::red), m_layout(layout){
+    setFlag(GraphicsItem::ItemIsMovable);
 }
 
-void LayoutMarker::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+void LayoutMarker::paint(QPainter *painter, const StyleOptionGraphicsItem *)
 {
     painter->save();
     painter->setOpacity(Const::LAYOUT_MARKER_OPACITY);
@@ -54,7 +52,7 @@ void LayoutMarker::setColor(QColor color)
     }
 }
 
-void LayoutMarker::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void LayoutMarker::mousePressEvent(GraphicsSceneMouseEvent *event)
 {
     if (event->button()==Qt::LeftButton) {
         if (!(event->modifiers() & Qt::ControlModifier))

@@ -31,9 +31,6 @@
 #include "lrdatadesignintf.h"
 #include <QStringList>
 #include <QSqlQuery>
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-#include <QRegExp>
-#endif
 #include <QSqlError>
 #include <QSqlQueryModel>
 #include <QFileInfo>
@@ -423,7 +420,6 @@ QString DataSourceManager::extractField(QString source)
 }
 
 QString DataSourceManager::replaceVariables(QString value){
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
     QRegularExpression rx(Const::VARIABLE_RX);
     QRegularExpressionMatchIterator iter = rx.globalMatch(value);
     qsizetype pos = 0;
@@ -444,31 +440,11 @@ QString DataSourceManager::replaceVariables(QString value){
     result += value.mid(pos);
     return result;
     // TODO: Qt6 port - done
-#else
-    QRegExp rx(Const::VARIABLE_RX);
-
-    if (value.contains(rx)){
-        int pos = -1;
-        while ((pos=rx.indexIn(value))!=-1){
-            QString var=rx.cap(0);
-            var.remove("$V{");
-            var.remove("}");
-
-            if (variable(var).isValid()){
-                value.replace(pos,rx.cap(0).length(),variable(var).toString());
-            } else {
-                value.replace(pos,rx.cap(0).length(),QString(tr("Variable \"%1\" not found!").arg(var)));
-            }
-        }
-    }
-    return value;    
-#endif
     return QString();
 }
 
 QString DataSourceManager::replaceVariables(QString query, QMap<QString,QString> &aliasesToParam)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
     QRegularExpression rx(Const::VARIABLE_RX);
     int curentAliasIndex = 0;
     if (query.contains(rx)){
@@ -509,51 +485,11 @@ QString DataSourceManager::replaceVariables(QString query, QMap<QString,QString>
         }
     }
     // TODO: Qt6 port - done
-#else
-    QRegExp rx(Const::VARIABLE_RX);
-    int curentAliasIndex = 0;
-    if (query.contains(rx)){
-        int pos = -1;
-        while ((pos=rx.indexIn(query))!=-1){
-
-            QString var=rx.cap(0);
-            var.remove("$V{");
-            var.remove("}");
-            if (!rx.cap(1).isEmpty()){
-                if (aliasesToParam.contains(var)){
-                    curentAliasIndex++;
-                    aliasesToParam.insert(var+"_v_alias"+QString::number(curentAliasIndex),var);
-                    var += "_v_alias"+QString::number(curentAliasIndex);
-                } else {
-                    aliasesToParam.insert(var,var);
-                }
-                query.replace(pos,rx.cap(0).length(),":"+var);
-            } else {
-                QString varName = rx.cap(2).trimmed();
-                QString varParam = rx.cap(3).trimmed();
-                if (!varName.isEmpty()){
-                    if (!varParam.isEmpty() && varParam.compare("nobind") == 0 ){
-                        query.replace(pos,rx.cap(0).length(), variable(varName).toString());
-                    } else {
-                        query.replace(pos,rx.cap(0).length(),
-                                      QString(tr("Unknown parameter \"%1\" for variable \"%2\" found!")
-                                              .arg(varName)
-                                              .arg(varParam))
-                                      );
-                    }
-                } else {
-                    query.replace(pos,rx.cap(0).length(),QString(tr("Variable \"%1\" not found!").arg(var)));
-                }
-            }
-        }
-    }
-#endif
     return query;
 }
 
 QString DataSourceManager::replaceFields(QString query, QMap<QString,QString> &aliasesToParam, QString masterDatasource)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
 
     QRegularExpression rx(Const::FIELD_RX);
     int curentAliasIndex = 0;
@@ -584,34 +520,6 @@ QString DataSourceManager::replaceFields(QString query, QMap<QString,QString> &a
         }
     }
     // TODO: Qt6 port - done
-#else
-    QRegExp rx(Const::FIELD_RX);
-    if (query.contains(rx)){
-        int curentAliasIndex=0;
-        int pos;
-        while ((pos=rx.indexIn(query))!=-1){
-            QString field=rx.cap(0);
-            field.remove("$D{");
-            field.remove("}");
-
-            if (!aliasesToParam.contains(field)){
-                if (field.contains("."))
-                    aliasesToParam.insert(field,field);
-                else
-                    aliasesToParam.insert(field,masterDatasource+"."+field);
-            } else {
-                curentAliasIndex++;
-                if (field.contains("."))
-                    aliasesToParam.insert(field+"_f_alias"+QString::number(curentAliasIndex),field);
-                else
-                    aliasesToParam.insert(field+"_f_alias"+QString::number(curentAliasIndex),masterDatasource+"."+field);
-                field+="_f_alias"+QString::number(curentAliasIndex);
-            }
-            query.replace(pos,rx.cap(0).length(),":"+extractField(field));
-        }
-    }
-    return query;    
-#endif
     return query;
 }
 
@@ -1495,11 +1403,7 @@ void DataSourceManager::invalidateQueriesContainsVariable(const QString& variabl
             foreach (const QString& datasourceName, dataSourceNames()){
                 QueryHolder* holder = dynamic_cast<QueryHolder*>(m_datasources.value(datasourceName));
                 if (holder){
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-                    QRegExp rx(QString(Const::NAMED_VARIABLE_RX).arg(variableName));
-#else
                     QRegularExpression rx(QString(Const::NAMED_VARIABLE_RX).arg(variableName));
-#endif
                     if  (holder->queryText().contains(rx)){
                         holder->invalidate(designTime() ? IDataSource::DESIGN_MODE : IDataSource::RENDER_MODE);
                         datasources.append(datasourceName);

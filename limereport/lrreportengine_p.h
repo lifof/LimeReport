@@ -32,7 +32,6 @@
 
 #include <QObject>
 #include <QSharedPointer>
-#include <QMainWindow>
 #include <QLocale>
 #include "lrreportengine.h"
 #include "lrcollection.h"
@@ -43,17 +42,17 @@
 #include "serializators/lrstorageintf.h"
 #include "lrscriptenginemanager.h"
 #include "lrreporttranslation.h"
-#include "lrdesignerplugininterface.h"
-#include "lrreportdesignwindowintrerface.h"
 
 class QFileSystemWatcher;
+class QPdfWriter;
+#include <QPageLayout>
+#include <QPointer>
 
 
 namespace LimeReport{
 
 class PageDesignIntf;
 class PrintRange;
-class ReportDesignWindow;
 class ReportExporterInterface;
 
 
@@ -99,8 +98,7 @@ public:
     virtual bool                    emitLoadReport() = 0;
     virtual void                    emitLoadFinished() = 0;
     virtual void                    clearSelection() = 0;
-    virtual bool                    printReport(QPrinter *printer=0) = 0;
-    virtual void                    previewReport(PreviewHints hints = PreviewBarsUserSetting) = 0;
+    virtual void                    previewReport(PreviewHints hints = PreviewBarsUserSetting, bool modal = true) = 0;
     virtual void                    setCurrentReportsDir(const QString& dirName) = 0;
     virtual QString                 currentReportsDir() = 0;
     virtual bool                    suppressFieldAndVarError() const = 0;
@@ -116,17 +114,20 @@ public:
     virtual bool                    isBusy() = 0;
 };
 
-class PrintProcessor{
+// Renders prepared pages into a QPdfWriter, one PDF page per report page.
+class PdfPrintProcessor{
 public:
-    explicit PrintProcessor(QPrinter* printer);
-    ~PrintProcessor(){ if (m_painter) delete m_painter;}
+    explicit PdfPrintProcessor(QPdfWriter* writer);
+    ~PdfPrintProcessor();
     bool printPage(LimeReport::PageItemDesignIntf::Ptr page);
+    void finish();
+    // Paints a single prepared page into painter, filling target.
+    static void renderPage(PageItemDesignIntf::Ptr page, QPainter* painter, const QRectF& target);
 private:
-    void initPrinter(PageItemDesignIntf* page);
+    QPageLayout pageLayout(PageItemDesignIntf* page) const;
 private:
-    QPrinter* m_printer;
+    QPdfWriter* m_writer;
     QPainter* m_painter;
-    LimeReport::PageDesignIntf m_renderPage;
     bool m_firstPage;
 };
 
@@ -148,8 +149,7 @@ class ReportEnginePrivate : public QObject,
 
     friend class PreviewReportWidget;
 public:
-    bool printPages(ReportPages pages, QPrinter *printer);
-    void printPages(ReportPages pages, QMap<QString,QPrinter*>printers, bool printToAllPrinters = false);
+    bool printPagesToPDF(ReportPages pages, const QString& fileName, const PrintRange& range = PrintRange());
     Q_INVOKABLE QStringList aviableReportTranslations();
     Q_INVOKABLE void setReportTranslation(const QString& languageName);
 public:
@@ -172,17 +172,15 @@ public:
     }
 
     void    clearReport();
-    bool    printReport(QPrinter* printer=0);
-    bool    printReport(QMap<QString, QPrinter*>printers, bool printToAllPrinters);
+    bool    printReport();
 
     void    printToFile(const QString& fileName);
-    bool    printToPDF(const QString& fileName);
+    bool    printToPDF(const QString& fileName, const PrintRange& range = PrintRange());
+    QList<QImage> renderToImages(qreal dpi);
     bool    exportReport(QString exporterName, const QString &fileName = "", const QMap<QString, QVariant>& params = QMap<QString, QVariant>());
-    void    previewReport(PreviewHints hints = PreviewBarsUserSetting);
-    void    previewReport(QPrinter* printer, PreviewHints hints = PreviewBarsUserSetting);
-
-    ReportDesignWindowInterface* getDesignerWindow();
+    void    previewReport(PreviewHints hints = PreviewBarsUserSetting, bool modal = true);
     void    designReport(bool showModal);
+    bool    showPreviewWindow(ReportPages pages, PreviewHints hints, bool modal = true);
     void    setSettings(QSettings* value);
     void    setShowProgressDialog(bool value){m_showProgressDialog = value;}
     bool    isShowProgressDialog() const {return m_showProgressDialog;}
@@ -211,7 +209,6 @@ public:
     QString reportName(){ return m_reportName;}
     bool hasActivePreview(){return m_activePreview;}
     PageDesignIntf *createPreviewScene(QObject *parent);
-    PreviewReportWidget *createPreviewWidget(QWidget *parent);
     QIcon previewWindowIcon() const;
     void setPreviewWindowIcon(const QIcon &previewWindowIcon);
     QString previewWindowTitle() const;
@@ -252,8 +249,9 @@ public:
     void      addWatermark(const WatermarkSetting& watermarkSetting);
     void      clearWatermarks();
     IPreparedPages* preparedPages();
-    bool showPreparedPages(PreviewHints hints);
-    bool showPreparedPages(QPrinter *defaultPrinter, PreviewHints hints);
+    bool showPreparedPages(PreviewHints hints, bool modal = true);
+    ReportPages renderToPages();
+    ReportPages preparedPagesList() const { return m_preparedPages; }
     bool prepareReportPages();
     bool printPreparedPages();
 signals:
@@ -274,7 +272,7 @@ signals:
     void    getAvailableDesignerLanguages(QList<QLocale::Language>* languages);
     void    currentDefaultDesignerLanguageChanged(QLocale::Language);
     QLocale::Language  getCurrentDefaultDesignerLanguage();
-    void    externalPaint(const QString& objectName, QPainter* painter, const QStyleOptionGraphicsItem*);
+    void    externalPaint(const QString& objectName, QPainter* painter, const StyleOptionGraphicsItem*);
     void    printingStarted(int pageCount);
     void    printingFinished();
     void    pagePrintingFinished(int index);
@@ -285,8 +283,6 @@ public slots:
     void    cancelPrinting();
 protected:
     PageDesignIntf* createPage(const QString& pageName="", bool preview = false);
-    bool showPreviewWindow(ReportPages pages, PreviewHints hints, QPrinter *printer);
-    void internalPrintPages(ReportPages pages, QPrinter &printer);
 protected slots:
     void    slotDataSourceCollectionLoaded(const QString& collectionName);
 private slots:
@@ -305,14 +301,13 @@ private:
     Translations* translations(){ return &m_translations;}
     void updateTranslations();
     //ITranslationContainer
-    ReportPages renderToPages();
     ReportPages appendPages(ReportPages s1, ReportPages s2, AppendType appendType);
     QString renderToString();
     PageItemDesignIntf *getPageByName(const QString& pageName);
     ATranslationProperty fakeTranslationReader(){ return ATranslationProperty();}
     PageItemDesignIntf *createRenderingPage(PageItemDesignIntf *page);
     void initReport();
-    void paintByExternalPainter(const QString& objectName, QPainter* painter, const QStyleOptionGraphicsItem* options);
+    void paintByExternalPainter(const QString& objectName, QPainter* painter, const StyleOptionGraphicsItem* options);
     void dropChanges(){ m_datasources->dropChanges(); m_scriptEngineContext->dropChanges();}
     void clearRenderingPages();
 private:
@@ -327,15 +322,13 @@ private:
     QString m_lastError;
     QSettings* m_settings;
     bool m_ownedSettings;
-    QScopedPointer<QPrinter> m_printer;
-    bool m_printerSelected;
     bool m_showProgressDialog;
     QString m_reportsDir;
     QString m_reportName;
-    QMainWindow* m_activePreview;
+    QPointer<QObject> m_activePreview;
     QIcon m_previewWindowIcon;
     QString m_previewWindowTitle;
-    QPointer<ReportDesignWindowInterface> m_designerWindow;
+    QPointer<QObject> m_designerWindow;
     ReportSettings m_reportSettings;
     bool m_reportRendering;
     bool m_resultIsEditable;
@@ -345,7 +338,6 @@ private:
     QLocale::Language m_reportLanguage;
     void activateLanguage(QLocale::Language language);
     Qt::LayoutDirection m_previewLayoutDirection;
-    LimeReportDesignerPluginInterface* m_designerFactory;
     QString m_styleSheet;
     QLocale::Language m_currentDesignerLanguage;
     QMap<QString, ReportExporterInterface*> exporters;

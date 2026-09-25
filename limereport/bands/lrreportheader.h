@@ -41,8 +41,8 @@ class ReportHeader : public LimeReport::BandDesignIntf
     Q_PROPERTY(bool splittable READ isSplittable WRITE setSplittable)
     Q_PROPERTY(bool printBeforePageHeader READ printBeforePageHeader WRITE setPrintBeforePageHeader)
 public:
-    ReportHeader(QObject* owner = 0, QGraphicsItem *parent=0);
-    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0);
+    ReportHeader(QObject* owner = 0, GraphicsItem *parent=0);
+    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0);
     bool printBeforePageHeader() const;
     void setPrintBeforePageHeader(bool printBeforePageHeader);
     bool isHeader() const {return true;}

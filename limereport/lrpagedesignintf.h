@@ -30,7 +30,6 @@
 #ifndef LRPAGEDEDIGNITF_H
 #define LRPAGEDEDIGNITF_H
 
-#include <QGraphicsScene>
 #include <QtXml>
 
 #include "lrpageitemdesignintf.h"
@@ -97,7 +96,7 @@ namespace LimeReport {
         BaseDesignIntf* m_item;
     };
 
-    class PageDesignIntf : public QGraphicsScene, public ObjectLoadingStateIntf{
+    class PageDesignIntf : public GraphicsScene, public ObjectLoadingStateIntf{
         Q_OBJECT
         Q_PROPERTY(QObject* pageItem READ pageItem)
     public:
@@ -184,19 +183,19 @@ namespace LimeReport {
 
         virtual void keyPressEvent(QKeyEvent *event);
         virtual void keyReleaseEvent(QKeyEvent *event);
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+        virtual void mouseMoveEvent(GraphicsSceneMouseEvent *event);
+        virtual void mousePressEvent(GraphicsSceneMouseEvent *event);
+        virtual void mouseReleaseEvent(GraphicsSceneMouseEvent *event);
 
-        virtual void dragEnterEvent(QGraphicsSceneDragDropEvent *event);
-        virtual void dragMoveEvent(QGraphicsSceneDragDropEvent *);
-        virtual void dragLeaveEvent(QGraphicsSceneDragDropEvent *event);
-        virtual void dropEvent(QGraphicsSceneDragDropEvent *event);
+        virtual void dragEnterEvent(GraphicsSceneDragDropEvent *event);
+        virtual void dragMoveEvent(GraphicsSceneDragDropEvent *);
+        virtual void dragLeaveEvent(GraphicsSceneDragDropEvent *event);
+        virtual void dropEvent(GraphicsSceneDragDropEvent *event);
 
         LimeReport::BandDesignIntf::BandsType findPriorType(LimeReport::BandDesignIntf::BandsType bandType);
         BaseDesignIntf *findDestObject(BaseDesignIntf *item);
 
-        bool isExistsObjectName (const QString& objectName, QList<QGraphicsItem *> &itemsList) const;
+        bool isExistsObjectName (const QString& objectName, QList<GraphicsItem *> &itemsList) const;
 
         bool isLoading();
         void objectLoadStarted();
@@ -225,6 +224,7 @@ namespace LimeReport {
         void bandAdded(LimeReport::PageDesignIntf* page, LimeReport::BandDesignIntf* band);
         void bandRemoved(LimeReport::PageDesignIntf* page, LimeReport::BandDesignIntf* band);
         void pageUpdateFinished(LimeReport::PageDesignIntf* page);
+        void itemEditorRequested(LimeReport::BaseDesignIntf* item);
     public slots:
         BaseDesignIntf* addBand(const QString& bandType);
         BaseDesignIntf* addBand(BandDesignIntf::BandsType bandType);
@@ -290,11 +290,11 @@ namespace LimeReport {
         QList<PageItemDesignIntf::Ptr> m_reportPages;
         ReportEnginePrivate* m_reportEditor;
         bool m_insertMode;
-        QGraphicsItem * m_itemInsertRect;
+        GraphicsItem * m_itemInsertRect;
         QString m_insertItemType;
         BaseDesignIntf::ItemMode m_itemMode;
-        QGraphicsRectItem* m_cutterBorder;
-        QGraphicsRectItem* m_pageRect;
+        GraphicsRectItem* m_cutterBorder;
+        GraphicsRectItem* m_pageRect;
         QVector<CommandIf::Ptr> m_commandsList;
         QVector<ReportItemPos> m_positionStamp;
         QVector<ReportItemSize> m_geometryStamp;
@@ -310,7 +310,7 @@ namespace LimeReport {
         QSettings* m_settings;
         QList<QObject*> m_animationList;
         QPointF m_startSelectionPoint;
-        QGraphicsRectItem* m_selectionRect;
+        GraphicsRectItem* m_selectionRect;
         int m_verticalGridStep;
         int m_horizontalGridStep;
         bool m_updating;

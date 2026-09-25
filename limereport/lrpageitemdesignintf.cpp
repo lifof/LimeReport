@@ -31,9 +31,6 @@
 #include "lrbanddesignintf.h"
 #include "lrpagedesignintf.h"
 
-#include <QGraphicsScene>
-#include <QPrinter>
-#include <QMenu>
 
 namespace LimeReport {
 
@@ -45,7 +42,7 @@ bool bandSortBandLessThenByIndex(const BandDesignIntf *c1, const BandDesignIntf 
     }
 }
 
-PageItemDesignIntf::PageItemDesignIntf(QObject *owner, QGraphicsItem *parent) :
+PageItemDesignIntf::PageItemDesignIntf(QObject *owner, GraphicsItem *parent) :
     ItemsContainerDesignInft("PageItem",owner,parent),
     m_topMargin(0), m_bottomMargin(0), m_leftMargin(0), m_rightMargin(0),
     m_pageOrientaion(Portrait), m_pageSize(A4), m_sizeChainging(false),
@@ -57,11 +54,11 @@ PageItemDesignIntf::PageItemDesignIntf(QObject *owner, QGraphicsItem *parent) :
 {
     setFixedPos(true);
     setPossibleResizeDirectionFlags(Fixed);
-    setFlag(QGraphicsItem::ItemClipsChildrenToShape);
+    setFlag(GraphicsItem::ItemClipsChildrenToShape);
     initPageSize(m_pageSize);
 }
 
-PageItemDesignIntf::PageItemDesignIntf(const PageSize pageSize, const QRectF &rect, QObject *owner, QGraphicsItem *parent) :
+PageItemDesignIntf::PageItemDesignIntf(const PageSize pageSize, const QRectF &rect, QObject *owner, GraphicsItem *parent) :
     ItemsContainerDesignInft("PageItem",owner,parent),
     m_topMargin(0), m_bottomMargin(0), m_leftMargin(0), m_rightMargin(0),
     m_pageOrientaion(Portrait), m_pageSize(pageSize), m_sizeChainging(false),
@@ -73,7 +70,7 @@ PageItemDesignIntf::PageItemDesignIntf(const PageSize pageSize, const QRectF &re
 {
     setFixedPos(true);
     setPossibleResizeDirectionFlags(Fixed);
-    setFlag(QGraphicsItem::ItemClipsChildrenToShape);
+    setFlag(GraphicsItem::ItemClipsChildrenToShape);
     initPageSize(rect.size());
 }
 
@@ -84,7 +81,7 @@ PageItemDesignIntf::~PageItemDesignIntf()
     m_bands.clear();
 }
 
-void PageItemDesignIntf::paint(QPainter *ppainter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void PageItemDesignIntf::paint(QPainter *ppainter, const StyleOptionGraphicsItem *option)
 {
 
     if (itemMode() & DesignMode){
@@ -121,11 +118,11 @@ void PageItemDesignIntf::paint(QPainter *ppainter, const QStyleOptionGraphicsIte
         tmpRect.adjust(-4,-4,4,4);
         ppainter->drawRect(tmpRect);
         ppainter->restore();
-        BaseDesignIntf::paint(ppainter,option,widget);
+        BaseDesignIntf::paint(ppainter,option);
     }
 }
 
-BaseDesignIntf *PageItemDesignIntf::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *PageItemDesignIntf::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new PageItemDesignIntf(owner,parent);
 }
@@ -174,7 +171,7 @@ void PageItemDesignIntf::setItemMode(BaseDesignIntf::ItemMode mode)
 
 void PageItemDesignIntf::clear()
 {
-    foreach(QGraphicsItem* item, childItems()){
+    foreach(GraphicsItem* item, childItems()){
         delete item;
     }
     childItems().clear();
@@ -709,26 +706,11 @@ void PageItemDesignIntf::setPageOrientation(PageItemDesignIntf::Orientation valu
 QSizeF PageItemDesignIntf::getRectByPageSize(const PageSize& size)
 {
     if (size != Custom) {
-        QPrinter printer;
-        printer.setOutputFormat(QPrinter::PdfFormat);
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-        printer.setOrientation((QPrinter::Orientation)pageOrientation());
-        printer.setPaperSize((QPrinter::PageSize)size);
-        return QSizeF(printer.paperSize(QPrinter::Millimeter).width() * 10,
-                      printer.paperSize(QPrinter::Millimeter).height() * 10);
-
-#else
         QPageSize pageSize = QPageSize((QPageSize::PageSizeId)size);
         qreal width = pageSize.size(QPageSize::Millimeter).width() * 10;
         qreal height = pageSize.size(QPageSize::Millimeter).height() * 10;
         return QSizeF(pageOrientation() == Portrait ? width : height,
                       pageOrientation() == Portrait ? height : width);
-
-//        printer.setPageOrientation((QPageLayout::Orientation)pageOrientation());
-//        printer.setPageSize(QPageSize((QPageSize::PageSizeId)size));
-//        return QSizeF(printer.pageLayout().pageSize().size(QPageSize::Millimeter).width() * 10,
-//                      printer.pageLayout().pageSize().size(QPageSize::Millimeter).height() * 10);
-#endif
     }
 
     else {
@@ -744,7 +726,7 @@ void PageItemDesignIntf::initPageSize(const QSizeF& size)
     m_sizeChainging=false;
 }
 
-void PageItemDesignIntf::preparePopUpMenu(QMenu &menu)
+void PageItemDesignIntf::preparePopUpMenu(PopupMenu &menu)
 {
     foreach (QAction* action, menu.actions()) {
         if (action->text().compare(tr("Paste")) != 0)
@@ -984,11 +966,7 @@ void PageItemDesignIntf::collectionLoadFinished(const QString &collectionName)
 {
     if (collectionName.compare("children",Qt::CaseInsensitive)==0){
         m_bands.clear();
-#ifdef HAVE_QT5
-        foreach(QObject* obj,children()){
-#else
         foreach(QObject* obj,QObject::children()){
-#endif
             BandDesignIntf* item = dynamic_cast<BandDesignIntf*>(obj);
             if (item) {
                 registerBand(item);

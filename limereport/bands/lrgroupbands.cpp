@@ -60,7 +60,7 @@ bool VARIABLE_IS_NOT_USED registredFooter = LimeReport::DesignElementsFactory::i
 
 namespace LimeReport{
 
-GroupBandHeader::GroupBandHeader(QObject *owner, QGraphicsItem *parent)
+GroupBandHeader::GroupBandHeader(QObject *owner, GraphicsItem *parent)
     : BandDesignIntf(BandDesignIntf::GroupHeader, xmlTagHeader, owner,parent),
       m_groupFiledName(""), m_groupStarted(false), m_resetPageNumber(false)
 {
@@ -79,7 +79,7 @@ bool GroupBandHeader::isUnique() const
 //    return m_tryToKeepTogether;
 //}
 
-BaseDesignIntf *GroupBandHeader::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *GroupBandHeader::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new GroupBandHeader(owner, parent);
 }
@@ -199,7 +199,7 @@ void GroupBandHeader::setResetPageNumber(bool resetPageNumber)
     m_resetPageNumber = resetPageNumber;
 }
 
-GroupBandFooter::GroupBandFooter(QObject *owner, QGraphicsItem *parent)
+GroupBandFooter::GroupBandFooter(QObject *owner, GraphicsItem *parent)
     :BandDesignIntf(BandDesignIntf::GroupFooter, xmlTagFooter, owner,parent)
 {
     setBandTypeText(tr("GroupFooter"));
@@ -217,7 +217,7 @@ QColor GroupBandFooter::bandColor() const
     return QColor(Qt::darkBlue);
 }
 
-BaseDesignIntf *GroupBandFooter::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *GroupBandFooter::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new GroupBandFooter(owner,parent);
 }

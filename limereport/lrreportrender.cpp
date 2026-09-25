@@ -28,8 +28,8 @@
  *   GNU General Public License for more details.                          *
  ****************************************************************************/
 #include <stdexcept>
-#include <QMessageBox>
 
+#include "lrmessagehub.h"
 #include "lrglobal.h"
 #include "lrreportrender.h"
 #include "lrpagedesignintf.h"
@@ -172,7 +172,7 @@ void ReportRender::initDatasources(){
         datasources()->setAllDatasourcesToFirst();
     } catch(ReportError &exception){
         //TODO possible should thow exeption
-        QMessageBox::critical(0,tr("Error"),exception.what());
+        MessageHub::critical(0,tr("Error"),exception.what());
         return;
     }
 }
@@ -185,7 +185,7 @@ void ReportRender::initDatasource(const QString& name){
                 ds->first();
         }
     } catch(ReportError &exception){
-        QMessageBox::critical(0,tr("Error"),exception.what());
+        MessageHub::critical(0,tr("Error"),exception.what());
         return;
     }
 }
@@ -196,20 +196,12 @@ void ReportRender::analizeItem(ContentItemDesignIntf* contentItem, BandDesignInt
         QString content = contentItem->content();
         QVector<QString> functions;
         foreach(const QString &functionName, m_datasources->groupFunctionNames()){
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
             QRegularExpression rx(QString(Const::GROUP_FUNCTION_RX).arg(functionName));
             rx.setPatternOptions(rx.InvertedGreedinessOption);
             if(content.indexOf(rx)>=0){
                 functions.append(functionName);
             }
             // TODO: Qt6 port - done
-#else
-            QRegExp rx(QString(Const::GROUP_FUNCTION_RX).arg(functionName));
-            rx.setMinimal(true);
-            if (rx.indexIn(content)>=0){
-                functions.append(functionName);
-            }            
-#endif
         }
         if (functions.size()>0)
             m_groupfunctionItems.insert(contentItem->patternName(), functions);
@@ -264,7 +256,7 @@ void ReportRender::renderPage(PageItemDesignIntf* patternPage, bool isTOC, bool 
         datasources()->clearGroupFuntionsExpressions();
     } catch(ReportError &exception){
         //TODO possible should thow exeption
-        QMessageBox::critical(0,tr("Error"),exception.what());
+        MessageHub::critical(0,tr("Error"),exception.what());
         return;
     }
 
@@ -334,18 +326,8 @@ void ReportRender::initRenderPage()
         ScriptValueType svCurrentPage;
         ScriptEngineType* se = ScriptEngineManager::instance().scriptEngine();
 
-#ifdef USE_QJSENGINE
         svCurrentPage = getJSValue(*se, m_renderPageItem);
         se->globalObject().setProperty("currentPage", svCurrentPage);
-#else
-        svCurrentPage = se->globalObject().property("currentPage");
-        if (svCurrentPage.isValid()){
-            se->newQObject(svCurrentPage, m_renderPageItem);
-        } else {
-            svCurrentPage = se->newQObject(m_renderPageItem);
-            se->globalObject().setProperty("currentPage", svCurrentPage);
-        }
-#endif
 
 
     }
@@ -368,19 +350,12 @@ void ReportRender::clearPageMap()
 bool checkContentItem(ContentItemDesignIntf* item, DataSourceManager* datasources){
     QString content = item->content();
     foreach(QString functionName, datasources->groupFunctionNames()){
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
         QRegularExpression rx(QString(Const::GROUP_FUNCTION_RX).arg(functionName));
         rx.setPatternOptions(rx.InvertedGreedinessOption);
         if(content.indexOf(rx)>=0){
             return true;
         }
         // TODO: Qt6 port - done
-#else
-        QRegExp rx(QString(Const::GROUP_FUNCTION_RX).arg(functionName));
-        if (rx.indexIn(content)>=0){
-            return true;
-        }
-#endif
     }
     return false;
 }
@@ -400,7 +375,6 @@ bool ReportRender::containsGroupFunctions(BaseDesignIntf *container){
 }
 
 void ReportRender::extractGroupFuntionsFromItem(ContentItemDesignIntf* contentItem, BandDesignIntf* band){
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
 
     if ( contentItem && contentItem->content().contains(QRegularExpression("\\$S\\s*\\{.*\\}"))){
         foreach(const QString &functionName, m_datasources->groupFunctionNames()){
@@ -471,42 +445,6 @@ void ReportRender::extractGroupFuntionsFromItem(ContentItemDesignIntf* contentIt
     }
 
     // TODO: Qt6 port - done
-#else
-    if ( contentItem && contentItem->content().contains(QRegExp("\\$S\\s*\\{.*\\}"))){
-        foreach(const QString &functionName, m_datasources->groupFunctionNames()){
-            QRegExp rx(QString(Const::GROUP_FUNCTION_RX).arg(functionName));
-            rx.setMinimal(true);
-            QRegExp rxName(QString(Const::GROUP_FUNCTION_NAME_RX).arg(functionName));
-            rxName.setMinimal(true);
-            if (rx.indexIn(contentItem->content())>=0){
-                int pos = 0;
-                while ( (pos = rx.indexIn(contentItem->content(),pos)) != -1){
-                    QVector<QString> captures = normalizeCaptures(rx);
-                    if (captures.size()>=3){
-                        int dsIndex = captures.size() == 3 ? Const::DATASOURCE_INDEX - 1 : Const::DATASOURCE_INDEX;
-                        BandDesignIntf* dataBand = m_patternPageItem->bandByName(captures.at(dsIndex));
-                        if (dataBand){
-                            GroupFunction* gf = datasources()->addGroupFunction(functionName,captures.at(Const::VALUE_INDEX),band->objectName(),dataBand->objectName());
-                            if (gf){
-                                connect(dataBand, SIGNAL(bandRendered(BandDesignIntf*)),
-                                        gf, SLOT(slotBandRendered(BandDesignIntf*)));
-                                connect(dataBand, SIGNAL(bandReRendered(BandDesignIntf*, BandDesignIntf*)),
-                                        gf, SLOT(slotBandReRendered(BandDesignIntf*, BandDesignIntf*)));
-                            }
-                        } else {
-                            GroupFunction* gf = datasources()->addGroupFunction(functionName,captures.at(Const::VALUE_INDEX),band->objectName(),captures.at(dsIndex));
-                            gf->setInvalid(tr("Databand \"%1\" not found").arg(captures.at(dsIndex)));
-                        }
-                    }
-                    pos += rx.matchedLength();
-                }
-            } else if (rxName.indexIn(contentItem->content())>=0){
-                GroupFunction* gf = datasources()->addGroupFunction(functionName,rxName.cap(1),band->objectName(),"");
-                gf->setInvalid(tr("Wrong using function %1").arg(functionName));
-            }
-        }
-    }    
-#endif
 }
 
 void ReportRender::extractGroupFunctionsFromContainer(BaseDesignIntf* baseItem, BandDesignIntf* band){
@@ -529,7 +467,6 @@ void ReportRender::replaceGroupFunctionsInItem(ContentItemDesignIntf* contentIte
         if (m_groupfunctionItems.contains(contentItem->patternName())){
             QString content = contentItem->content();
             foreach(QString functionName, m_groupfunctionItems.value(contentItem->patternName())){
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 3)
 
                 QRegularExpression rx(QString(Const::GROUP_FUNCTION_RX).arg(functionName));
                 rx.setPatternOptions(rx.InvertedGreedinessOption);
@@ -557,31 +494,6 @@ void ReportRender::replaceGroupFunctionsInItem(ContentItemDesignIntf* contentIte
                     }
                 }
                 // TODO: Qt6 port - done
-#else
-                QRegExp rx(QString(Const::GROUP_FUNCTION_RX).arg(functionName));
-                rx.setMinimal(true);
-                if (rx.indexIn(content)>=0){
-                    int pos = 0;
-                    while ( (pos = rx.indexIn(content,pos))!= -1 ){
-                        QVector<QString> captures = normalizeCaptures(rx);
-                        if (captures.size() >= 3){
-                            QString expressionIndex = datasources()->putGroupFunctionsExpressions(captures.at(Const::VALUE_INDEX));
-                            if (captures.size()<5){
-                                content.replace(captures.at(0),QString("%1(%2,%3)").arg(functionName).arg('"'+expressionIndex+'"').arg('"'+band->objectName()+'"'));
-                            } else {
-                                content.replace(captures.at(0),QString("%1(%2,%3,%4)").arg(
-                                                    functionName,
-                                                    '"'+expressionIndex+'"',
-                                                    '"'+band->objectName()+'"',
-                                                    captures.at(4)
-                                                ));
-                            }
-                        }
-                        pos += rx.matchedLength();
-                    }
-                }
-
-#endif
             }
             contentItem->setContent(content);
         }
@@ -1287,11 +1199,7 @@ bool ReportRender::registerBand(BandDesignIntf *band, bool registerInChildren)
         band->setObjectName(band->objectName()+QString::number(++m_currentNameIndex));
         renameChildItems(band);
         if (m_lastDataBand){
-#if QT_VERSION < 0x050000
-            m_lastDataBand->metaObject()->invokeMethod(m_lastDataBand,"bandRegistred");
-#else
             emit m_lastDataBand->bandRegistred();
-#endif
         }
         if (band->bandType() != BandDesignIntf::PageFooter)
             m_lastRenderedBand = band;

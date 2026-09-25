@@ -45,7 +45,7 @@ bool VARIABLE_IS_NOT_USED registred = LimeReport::DesignElementsFactory::instanc
 
 namespace LimeReport{
 
-BarcodeItem::BarcodeItem(QObject* owner,QGraphicsItem* parent)
+BarcodeItem::BarcodeItem(QObject* owner,GraphicsItem* parent)
     : ContentItemDesignIntf(xmlTag,owner,parent),m_designTestValue("1"), m_barcodeType(CODE128),
       m_foregroundColor(Qt::black), m_backgroundColor(Qt::white), m_whitespace(10), m_angle(Angle0),
       m_barcodeWidth(0), m_securityLevel(0), m_pdf417CodeWords(928), m_inputMode(UNICODE_INPUT_MODE),
@@ -55,12 +55,12 @@ BarcodeItem::BarcodeItem(QObject* owner,QGraphicsItem* parent)
 BarcodeItem::~BarcodeItem()
 {}
 
-BaseDesignIntf *BarcodeItem::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *BarcodeItem::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new BarcodeItem(owner,parent);
 }
 
-void BarcodeItem::paint(QPainter *ppainter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void BarcodeItem::paint(QPainter *ppainter, const StyleOptionGraphicsItem *option)
 {
     ppainter->save();
     Zint::QZint bc;
@@ -104,7 +104,7 @@ void BarcodeItem::paint(QPainter *ppainter, const QStyleOptionGraphicsItem *opti
 
     bc.render(*ppainter,bcRect);
     ppainter->restore();
-    ItemDesignIntf::paint(ppainter,option,widget);
+    ItemDesignIntf::paint(ppainter,option);
 }
 
 void BarcodeItem::setContent(const QString &content)

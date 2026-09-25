@@ -17,14 +17,14 @@ bool VARIABLE_IS_NOT_USED registred = LimeReport::DesignElementsFactory::instanc
 
 namespace LimeReport{
 
-TearOffBand::TearOffBand(QObject *owner, QGraphicsItem *parent)
+TearOffBand::TearOffBand(QObject *owner, GraphicsItem *parent)
     :BandDesignIntf(LimeReport::BandDesignIntf::TearOffBand,xmlTag,owner,parent)
 {
     setBandTypeText(tr("Tear-off Band"));
     setMarkerColor(bandColor());
 }
 
-BaseDesignIntf *TearOffBand::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *TearOffBand::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new TearOffBand(owner,parent);
 }

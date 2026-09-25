@@ -31,14 +31,11 @@
 #include "lritemdesignintf.h"
 #include "lrglobal.h"
 #include <algorithm>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
-#include <QMenu>
 
 namespace LimeReport {
 
-BandMarker::BandMarker(BandDesignIntf *band, QGraphicsItem* parent)
-    :QGraphicsItem(parent),m_rect(0,0,30,30),m_band(band)
+BandMarker::BandMarker(BandDesignIntf *band, GraphicsItem* parent)
+    :GraphicsItem(parent),m_rect(0,0,30,30),m_band(band)
 {
     setAcceptHoverEvents(true);
 }
@@ -48,7 +45,7 @@ QRectF BandMarker::boundingRect() const
     return m_rect;
 }
 
-void BandMarker::paint(QPainter *painter, const QStyleOptionGraphicsItem* /**option*/, QWidget* /*widget*/)
+void BandMarker::paint(QPainter *painter, const StyleOptionGraphicsItem* /*option*/)
 {
     painter->save();
     painter->setOpacity(Const::BAND_MARKER_OPACITY);
@@ -99,7 +96,7 @@ void BandMarker::setColor(QColor color)
     }
 }
 
-void BandMarker::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void BandMarker::mousePressEvent(GraphicsSceneMouseEvent *event)
 {
     if (event->button()==Qt::LeftButton) {
         if (!(event->modifiers() & Qt::ControlModifier))
@@ -110,12 +107,12 @@ void BandMarker::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void BandMarker::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+void BandMarker::contextMenuEvent(GraphicsSceneContextMenuEvent *event)
 {
     m_band->contextMenuEvent(event);
 }
 
-void BandMarker::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+void BandMarker::hoverMoveEvent(GraphicsSceneHoverEvent* event)
 {
     if (QRectF(0, height()-10, width(), 10).contains(event->pos())){
        setCursor(Qt::SizeVerCursor);
@@ -124,7 +121,7 @@ void BandMarker::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
     }
 }
 
-void BandMarker::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void BandMarker::mouseMoveEvent(GraphicsSceneMouseEvent* event)
 {
     qreal delta = event->pos().y() - event->lastPos().y();
     if (hasCursor()){
@@ -135,13 +132,13 @@ void BandMarker::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     }
 }
 
-void BandMarker::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void BandMarker::mouseReleaseEvent(GraphicsSceneMouseEvent* event)
 {
     Q_UNUSED(event)
     m_band->posChanged(m_band, m_band->pos(), m_oldBandPos);
 }
 
-BandDesignIntf::BandDesignIntf(BandsType bandType, const QString &xmlTypeName, QObject* owner, QGraphicsItem *parent) :
+BandDesignIntf::BandDesignIntf(BandsType bandType, const QString &xmlTypeName, QObject* owner, GraphicsItem *parent) :
     ItemsContainerDesignInft(xmlTypeName, owner,parent),
     m_bandType(bandType),
     m_bandIndex(static_cast<int>(bandType)),
@@ -182,7 +179,7 @@ BandDesignIntf::BandDesignIntf(BandsType bandType, const QString &xmlTypeName, Q
     setFillTransparentInDesignMode(false);
     setHeight(100);
     setFixedPos(true);
-    setFlag(QGraphicsItem::ItemClipsChildrenToShape);
+    setFlag(GraphicsItem::ItemClipsChildrenToShape);
     m_bandMarker = new BandMarker(this);
     m_bandMarker->setColor(Qt::magenta);
     m_bandMarker->setHeight(height());
@@ -255,9 +252,9 @@ void BandDesignIntf::copyBandAttributes(BandDesignIntf *source)
     this->setBackgroundColor(source->backgroundColor());
 }
 
-void BandDesignIntf::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void BandDesignIntf::paint(QPainter *painter, const StyleOptionGraphicsItem *option)
 {
-    prepareRect(painter, option, widget);
+    prepareRect(painter, option);
 
     if (itemMode() & DesignMode){
         painter->save();
@@ -289,7 +286,7 @@ void BandDesignIntf::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         }
         painter->restore();
     }
-    BaseDesignIntf::paint(painter,option,widget);
+    BaseDesignIntf::paint(painter,option);
 }
 
 QRectF BandDesignIntf::boundingRect() const
@@ -494,7 +491,7 @@ QList<BandDesignIntf *> BandDesignIntf::childrenByType(BandDesignIntf::BandsType
 bool BandDesignIntf::canBeSplitted(int height) const
 {
     if (isSplittable()){
-        foreach(QGraphicsItem* qgItem,childItems()){
+        foreach(GraphicsItem* qgItem,childItems()){
             BaseDesignIntf* item=dynamic_cast<BaseDesignIntf*>(qgItem);
             if (item)
                 if ((item->minHeight()>height) && (item->minHeight()>(this->height()-height))) return false;
@@ -506,7 +503,7 @@ bool BandDesignIntf::canBeSplitted(int height) const
 bool BandDesignIntf::isEmpty() const
 {
     if (!isVisible()) return true;
-    foreach(QGraphicsItem* qgItem,childItems()){
+    foreach(GraphicsItem* qgItem,childItems()){
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(qgItem);
         if ((item)&&(!item->isEmpty())) return false;
     }
@@ -535,13 +532,13 @@ bool BandDesignIntf::tryToKeepTogether()
 void BandDesignIntf::checkEmptyTable(){
     bool isEmpty = true;
     bool allItemsIsText = true;
-    foreach (QGraphicsItem* qgItem, childItems()) {
+    foreach (GraphicsItem* qgItem, childItems()) {
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(qgItem);
         if (item && !item->isEmpty()) isEmpty = false;
         if (!item) allItemsIsText = false;
     }
     if (isEmpty && allItemsIsText){
-        foreach (QGraphicsItem* qgItem, childItems()) {
+        foreach (GraphicsItem* qgItem, childItems()) {
             ContentItemDesignIntf* item = dynamic_cast<ContentItemDesignIntf*>(qgItem);
             item->setHeight(0);
         }
@@ -573,13 +570,13 @@ void BandDesignIntf::setColumnsFillDirection(BandDesignIntf::BandColumnsLayoutTy
 }
 
 void BandDesignIntf::moveItemsDown(qreal startPos, qreal offset){
-   foreach (QGraphicsItem* item, childItems()){
+   foreach (GraphicsItem* item, childItems()){
        if (item->pos().y()>=startPos)
            item->setPos(item->x(),item->y()+offset);
    }
 }
 
-void BandDesignIntf::preparePopUpMenu(QMenu &menu)
+void BandDesignIntf::preparePopUpMenu(PopupMenu &menu)
 {
 
     QList<QString> disabledActions;
@@ -656,7 +653,7 @@ void BandDesignIntf::processPopUpAction(QAction *action)
 //    updateItemSize(dataManager,FirstPass,height());
 //}
 
-BaseDesignIntf* BandDesignIntf::cloneUpperPart(int height, QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf* BandDesignIntf::cloneUpperPart(int height, QObject *owner, GraphicsItem *parent)
 {
     int maxBottom = 0;
     BandDesignIntf* upperPart = dynamic_cast<BandDesignIntf*>(createSameTypeItem(owner,parent));
@@ -664,7 +661,7 @@ BaseDesignIntf* BandDesignIntf::cloneUpperPart(int height, QObject *owner, QGrap
 
     upperPart->initFromItem(this);
 
-    foreach(QGraphicsItem* qgItem,childItems()){
+    foreach(GraphicsItem* qgItem,childItems()){
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(qgItem);
         if (item){
             if (item->geometry().bottom()<=height){
@@ -698,20 +695,20 @@ BaseDesignIntf* BandDesignIntf::cloneUpperPart(int height, QObject *owner, QGrap
     return upperPart;
 }
 
-bool itemLessThen(QGraphicsItem* i1, QGraphicsItem* i2){
+bool itemLessThen(GraphicsItem* i1, GraphicsItem* i2){
     return i1->pos().y()<i2->pos().y();
 }
 
-BaseDesignIntf *BandDesignIntf::cloneBottomPart(int height, QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *BandDesignIntf::cloneBottomPart(int height, QObject *owner, GraphicsItem *parent)
 {
     BandDesignIntf* bottomPart = dynamic_cast<BandDesignIntf*>(createSameTypeItem(owner,parent));
     bottomPart->initFromItem(this);
 
-    QList<QGraphicsItem*> bandItems;
+    QList<GraphicsItem*> bandItems;
     bandItems = childItems();
     std::sort(bandItems.begin(),bandItems.end(), itemLessThen);
 
-    foreach(QGraphicsItem* qgItem, bandItems){
+    foreach(GraphicsItem* qgItem, bandItems){
         BaseDesignIntf* item = dynamic_cast<BaseDesignIntf*>(qgItem);
 
         if (item){
@@ -835,7 +832,7 @@ void BandDesignIntf::geometryChangedEvent(QRectF, QRectF )
     }
 }
 
-QVariant BandDesignIntf::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+QVariant BandDesignIntf::itemChange(GraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
     if ((change==ItemPositionChange)&&((itemMode()&DesignMode)||(itemMode()&EditMode))){
         if (m_bandMarker){
@@ -1169,18 +1166,18 @@ QColor BandDesignIntf::selectionColor() const
     return Qt::yellow;
 }
 
-DataBandDesignIntf::DataBandDesignIntf(BandDesignIntf::BandsType bandType, QString xmlTypeName, QObject *owner, QGraphicsItem *parent)
+DataBandDesignIntf::DataBandDesignIntf(BandDesignIntf::BandsType bandType, QString xmlTypeName, QObject *owner, GraphicsItem *parent)
     :BandDesignIntf(bandType,xmlTypeName,owner,parent)
 {
 }
 
-BandNameLabel::BandNameLabel(BandDesignIntf *band, QGraphicsItem *parent)
-    :QGraphicsItem(parent),m_rect(5,5,30,30),m_band(band)
+BandNameLabel::BandNameLabel(BandDesignIntf *band, GraphicsItem *parent)
+    :GraphicsItem(parent),m_rect(5,5,30,30),m_band(band)
 {
     setAcceptHoverEvents(true);
 }
 
-void BandNameLabel::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void BandNameLabel::paint(QPainter *painter, const StyleOptionGraphicsItem *option)
 {
     painter->save();
     painter->setRenderHint(QPainter::Antialiasing);
@@ -1196,7 +1193,6 @@ void BandNameLabel::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->drawText(m_rect,Qt::AlignCenter,m_band->bandTitle());
     painter->restore();
     Q_UNUSED(option)
-    Q_UNUSED(widget)
 }
 
 QRectF BandNameLabel::boundingRect() const
@@ -1217,7 +1213,7 @@ void BandNameLabel::updateLabel(const QString& bandName)
     update();
 }
 
-void BandNameLabel::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void BandNameLabel::hoverEnterEvent(GraphicsSceneHoverEvent *event)
 {
     setVisible(false);
     Q_UNUSED(event)

@@ -47,13 +47,9 @@ class ShapeItem: public LimeReport::ItemDesignIntf
     Q_PROPERTY(int cornerRadius READ cornerRadius WRITE setCornerRadius)
 public:
     enum ShapeType{HorizontalLine,VerticalLine,Ellipse,Rectangle};
-#if QT_VERSION >= 0x050500
     Q_ENUM(ShapeType)
-#else
-    Q_ENUMS(ShapeType)
-#endif
-    ShapeItem(QObject *owner, QGraphicsItem *parent);
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    ShapeItem(QObject *owner, GraphicsItem *parent);
+    virtual void paint(QPainter *painter, const StyleOptionGraphicsItem *option);
     void    setShapeColor(QColor value);
     QColor  shapeColor() const {return m_shapeColor;}
     void    setShapeBrushColor(QColor value);
@@ -70,7 +66,7 @@ public:
     void setCornerRadius(int cornerRadius);
 
 protected:
-    BaseDesignIntf* createSameTypeItem(QObject *owner, QGraphicsItem *parent);
+    BaseDesignIntf* createSameTypeItem(QObject *owner, GraphicsItem *parent);
     bool drawDesignBorders() const {return false;}
 private:
     ShapeType m_shape;

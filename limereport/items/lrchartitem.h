@@ -36,11 +36,7 @@ class SeriesItem : public QObject{
     Q_PROPERTY(SeriesItemPreferredType preferredType READ preferredType WRITE setPreferredType)
 public:
     enum SeriesItemPreferredType {Bar, Line};
-#if QT_VERSION >= 0x050500
     Q_ENUM(SeriesItemPreferredType)
-#else
-    Q_ENUMS(SeriesItemPreferredType)
-#endif
     SeriesItem(QObject* parent = 0) : QObject(parent), m_preferredType(Bar){}
     QString name() const;
     void setName(const QString &name);
@@ -183,24 +179,16 @@ public:
         VerticalLine = 2,
         AllLines = 3
     };
-#if QT_VERSION >= 0x050500
     Q_ENUM(LegendAlign)
     Q_ENUM(LegendStyle)
     Q_ENUM(TitleAlign)
     Q_ENUM(ChartType)
     Q_ENUM(LineType)
-#else
-    Q_ENUMS(LegendAlign)
-    Q_ENUMS(LegendStyle)
-    Q_ENUMS(TitleAlign)
-    Q_ENUMS(ChartType)
-    Q_ENUMS(LineType)
-#endif
     Q_DECLARE_FLAGS(GridChartLines, LineType)
 
-    ChartItem(QObject* owner, QGraphicsItem* parent);
+    ChartItem(QObject* owner, GraphicsItem* parent);
     ~ChartItem();
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    virtual void paint(QPainter *painter, const StyleOptionGraphicsItem *option);
 
     QObject* xAxisSettings();
     void setYAxisSettings(QObject *axis);
@@ -210,7 +198,6 @@ public:
     AxisData *xAxisData();
     AxisData *yAxisData();
 
-    void showAxisEditorDialog(bool isXAxis);
 
     QList<SeriesItem *> &series();
     void setSeries(const QList<SeriesItem *> &series);
@@ -242,7 +229,6 @@ public:
 
     QList<QString> labels() const;
     void setLabels(const QList<QString> &labels);
-    QWidget* defaultEditor();
 
     bool showLegend() const;
     void setShowLegend(bool showLegend);
@@ -270,7 +256,7 @@ public:
 
 protected:
     void paintChartTitle(QPainter* painter, QRectF titleRect);
-    virtual BaseDesignIntf* createSameTypeItem(QObject *owner, QGraphicsItem *parent);
+    virtual BaseDesignIntf* createSameTypeItem(QObject *owner, GraphicsItem *parent);
     //ICollectionContainer
     QObject* createElement(const QString& collectionName, const QString& elementType);
     int elementsCount(const QString& collectionName);

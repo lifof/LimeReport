@@ -24,14 +24,14 @@ bool verticalLessThen(BaseDesignIntf *c1, BaseDesignIntf* c2){
     return c1->pos().y()<c2->pos().y();
 }
 
-VerticalLayout::VerticalLayout(QObject* owner, QGraphicsItem* parent)
+VerticalLayout::VerticalLayout(QObject* owner, GraphicsItem* parent)
     : AbstractLayout(xmlTag, owner, parent)
 {}
 
 VerticalLayout::~VerticalLayout()
 {}
 
-BaseDesignIntf* VerticalLayout::createSameTypeItem(QObject* owner, QGraphicsItem* parent)
+BaseDesignIntf* VerticalLayout::createSameTypeItem(QObject* owner, GraphicsItem* parent)
 {
     return new LimeReport::VerticalLayout(owner, parent);
 }
@@ -97,7 +97,7 @@ bool VerticalLayout::canBeSplitted(int height) const
     return false;
 }
 
-BaseDesignIntf* VerticalLayout::cloneUpperPart(int height, QObject* owner, QGraphicsItem* parent)
+BaseDesignIntf* VerticalLayout::cloneUpperPart(int height, QObject* owner, GraphicsItem* parent)
 {
     VerticalLayout* upperPart = dynamic_cast<VerticalLayout*>(createSameTypeItem(owner,parent));
     upperPart->initFromItem(this);
@@ -119,7 +119,7 @@ BaseDesignIntf* VerticalLayout::cloneUpperPart(int height, QObject* owner, QGrap
     return upperPart;
 }
 
-BaseDesignIntf* VerticalLayout::cloneBottomPart(int height, QObject* owner, QGraphicsItem* parent)
+BaseDesignIntf* VerticalLayout::cloneBottomPart(int height, QObject* owner, GraphicsItem* parent)
 {
     VerticalLayout* bottomPart = dynamic_cast<VerticalLayout*>(createSameTypeItem(owner,parent));
     bottomPart->initFromItem(this);

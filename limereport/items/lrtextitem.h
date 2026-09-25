@@ -29,9 +29,7 @@
  ****************************************************************************/
 #ifndef LRTEXTITEM_H
 #define LRTEXTITEM_H
-#include <QGraphicsTextItem>
 #include <QtGui>
-#include <QLabel>
 #include <QTextDocument>
 #include <QtGlobal>
 
@@ -79,21 +77,15 @@ public:
     enum AutoWidth{NoneAutoWidth, MaxWordLength, MaxStringLength};
     enum AngleType{Angle0, Angle90, Angle180, Angle270, Angle45, Angle315};
     enum ValueType{Default, DateTime, Double};
-#if QT_VERSION >= 0x050500
     Q_ENUM(AutoWidth)
     Q_ENUM(AngleType)
     Q_ENUM(ValueType)
-#else
-    Q_ENUMS(AutoWidth)
-    Q_ENUMS(AngleType)
-    Q_ENUMS(ValueType)
-#endif
 
     void Init();
-    TextItem(QObject* owner=0, QGraphicsItem* parent=0);
+    TextItem(QObject* owner=0, GraphicsItem* parent=0);
     ~TextItem();
 
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*);
+    void paint(QPainter* painter, const StyleOptionGraphicsItem*);
     QString content() const;
     void setContent(const QString& value);
 
@@ -117,14 +109,13 @@ public:
     bool canBeSplitted(int height) const;
     bool isSplittable() const { return true;}
     bool isEmpty() const{return m_strText.trimmed().isEmpty();}
-    BaseDesignIntf* cloneUpperPart(int height, QObject *owner, QGraphicsItem *parent);
-    BaseDesignIntf* cloneBottomPart(int height, QObject *owner, QGraphicsItem *parent);
-    BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0);
-    BaseDesignIntf* cloneEmpty(int height, QObject *owner, QGraphicsItem *parent);
+    BaseDesignIntf* cloneUpperPart(int height, QObject *owner, GraphicsItem *parent);
+    BaseDesignIntf* cloneBottomPart(int height, QObject *owner, GraphicsItem *parent);
+    BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0);
+    BaseDesignIntf* cloneEmpty(int height, QObject *owner, GraphicsItem *parent);
     void objectLoadFinished();
 
     void setTextItemFont(QFont value);
-    QWidget* defaultEditor();
     void setBackgroundOpacity(int value);
     void setBackgroundModeProperty(BGMode value);
     void setBackgroundColorProperty(QColor value);
@@ -195,7 +186,7 @@ protected:
     int fakeMarginSize() const;
     QString getTextPart(int height, int skipHeight);
     void restoreLinksEvent();
-    void preparePopUpMenu(QMenu &menu);
+    void preparePopUpMenu(PopupMenu &menu);
     void processPopUpAction(QAction *action);
 private:
     void initTextSizes() const;

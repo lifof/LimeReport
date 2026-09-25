@@ -75,7 +75,7 @@ namespace LimeReport{
 
 //SubDetailBand
 
-SubDetailBand::SubDetailBand(QObject *owner, QGraphicsItem *parent)
+SubDetailBand::SubDetailBand(QObject *owner, GraphicsItem *parent)
     : DataBandDesignIntf(BandDesignIntf::SubDetailBand, xmlTagBand, owner,parent)
 {
     setBandTypeText(tr("SubDetail"));
@@ -93,7 +93,7 @@ bool SubDetailBand::isHasFooter() const
     return isConnectedToBand(BandDesignIntf::SubDetailFooter);
 }
 
-BaseDesignIntf *SubDetailBand::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *SubDetailBand::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new SubDetailBand(owner,parent);
 }
@@ -105,7 +105,7 @@ QColor SubDetailBand::bandColor() const
 
 //SubDetailHeaderBand
 
-SubDetailHeaderBand::SubDetailHeaderBand(QObject *owner, QGraphicsItem *parent)
+SubDetailHeaderBand::SubDetailHeaderBand(QObject *owner, GraphicsItem *parent)
     :BandDesignIntf(BandDesignIntf::SubDetailHeader,xmlTagHeader,owner,parent)
 {
     setBandTypeText(tr("SubDetailHeader"));
@@ -122,14 +122,14 @@ QColor SubDetailHeaderBand::bandColor() const
     return BAND_COLOR;
 }
 
-BaseDesignIntf *SubDetailHeaderBand::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *SubDetailHeaderBand::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new SubDetailHeaderBand(owner,parent);
 }
 
 //SubDetailFooterBand
 
-SubDetailFooterBand::SubDetailFooterBand(QObject *owner, QGraphicsItem *parent)
+SubDetailFooterBand::SubDetailFooterBand(QObject *owner, GraphicsItem *parent)
     : BandDesignIntf(BandDesignIntf::SubDetailFooter,xmlTagFooter,owner,parent)
 {
     setMarkerColor(bandColor());
@@ -145,7 +145,7 @@ QColor SubDetailFooterBand::bandColor() const
     return BAND_COLOR;
 }
 
-BaseDesignIntf *SubDetailFooterBand::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *SubDetailFooterBand::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new SubDetailFooterBand(owner,parent);
 }

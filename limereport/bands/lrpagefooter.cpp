@@ -48,7 +48,7 @@ bool VARIABLE_IS_NOT_USED registred = LimeReport::DesignElementsFactory::instanc
 
 namespace LimeReport{
 
-PageFooter::PageFooter(QObject *owner, QGraphicsItem *parent)
+PageFooter::PageFooter(QObject *owner, GraphicsItem *parent)
     : BandDesignIntf(LimeReport::BandDesignIntf::PageFooter,xmlTag,owner,parent),
       m_printOnFirstPage(true), m_printOnLastPage(true), m_removeGap(false)
 {
@@ -57,7 +57,7 @@ PageFooter::PageFooter(QObject *owner, QGraphicsItem *parent)
         setAutoHeight(false);
 }
 
-BaseDesignIntf *PageFooter::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *PageFooter::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new PageFooter(owner,parent);
 }
@@ -67,7 +67,7 @@ QColor PageFooter::bandColor() const
     return QColor(246,120,12);
 }
 
-void PageFooter::preparePopUpMenu(QMenu &menu)
+void PageFooter::preparePopUpMenu(PopupMenu &menu)
 {
     QAction* action = menu.addAction(tr("Print on first page"));
     action->setCheckable(true);

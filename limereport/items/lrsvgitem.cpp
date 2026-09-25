@@ -1,6 +1,5 @@
 #include "lrsvgitem.h"
 #include "lrdesignelementsfactory.h"
-#include "lrimageitemeditor.h"
 #include "lrpagedesignintf.h"
 #include <QtSvg>
 
@@ -15,12 +14,12 @@ namespace{
 }
 
 namespace LimeReport{
-SVGItem::SVGItem(QObject *owner, QGraphicsItem *parent)
+SVGItem::SVGItem(QObject *owner, GraphicsItem *parent)
     :ItemDesignIntf(xmlTag,owner,parent)
 {
 }
 
-void SVGItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void SVGItem::paint(QPainter *painter, const StyleOptionGraphicsItem *option)
 {
     painter->save();
     if (isSelected()) painter->setOpacity(Const::SELECTION_OPACITY);
@@ -39,7 +38,7 @@ void SVGItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, Q
         render.load(m_image);
         render.render(painter, option->rect);
     }
-    ItemDesignIntf::paint(painter,option,widget);
+    ItemDesignIntf::paint(painter,option);
     painter->restore();
 }
 
@@ -58,7 +57,7 @@ QString SVGItem::fileFilter() const
     return tr("SVG (*.svg)");
 }
 
-void SVGItem::preparePopUpMenu(QMenu &menu)
+void SVGItem::preparePopUpMenu(PopupMenu &menu)
 {
     QAction* editAction = menu.addAction(QIcon(":/report/images/edit_pecil2.png"),tr("Edit"));
     menu.insertAction(menu.actions().at(0),editAction);
@@ -81,14 +80,7 @@ void SVGItem::processPopUpAction(QAction *action)
     ItemDesignIntf::processPopUpAction(action);
 }
 
-QWidget *SVGItem::defaultEditor()
-{
-    ImageItemEditor* editor = new ImageItemEditor(this);
-    editor->setAttribute(Qt::WA_DeleteOnClose);
-    return editor;
-};
-
-BaseDesignIntf* SVGItem::createSameTypeItem(QObject *owner, QGraphicsItem *parent){
+BaseDesignIntf* SVGItem::createSameTypeItem(QObject *owner, GraphicsItem *parent){
     return new SVGItem(owner, parent);
 }
 

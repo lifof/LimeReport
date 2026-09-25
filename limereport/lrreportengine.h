@@ -32,32 +32,34 @@
 
 #include <QObject>
 #include <QSettings>
-#include <QPrintDialog>
-//#include <QJSEngine>
+#include <QIcon>
+#include <QColor>
+#include <QFont>
+#include <QImage>
 
 #include "lrglobal.h"
 #include "lrdatasourcemanagerintf.h"
 #include "lrscriptenginemanagerintf.h"
-#include "lrpreviewreportwidget.h"
-#include "lrreportdesignwindowintrerface.h"
 #include "lrpreparedpagesintf.h"
-
-class QPrinter;
-class QGraphicsScene;
 
 namespace LimeReport {
 
-class PrintRange{
+class GraphicsScene;
+
+class LIMEREPORT_EXPORT PrintRange{
 public:
+    enum RangeType { AllPages, PageRange };
     int fromPage() const { return m_fromPage;}
     int toPage() const { return m_toPage;}
-    QPrintDialog::PrintRange rangeType() const { return m_rangeType;}
-    PrintRange(QAbstractPrintDialog::PrintRange rangeType=QPrintDialog::AllPages, int fromPage=0, int toPage=0);
-    void setRangeType(QAbstractPrintDialog::PrintRange rangeType){ m_rangeType=rangeType;}
+    RangeType rangeType() const { return m_rangeType;}
+    PrintRange(RangeType rangeType = AllPages, int fromPage = 0, int toPage = 0)
+        : m_rangeType(rangeType), m_fromPage(fromPage), m_toPage(toPage){}
+    void setRangeType(RangeType rangeType){ m_rangeType=rangeType;}
     void setFromPage(int fromPage){ m_fromPage = fromPage;}
     void setToPage(int toPage){ m_toPage = toPage;}
+    bool contains(int page) const { return m_rangeType == AllPages || (page >= m_fromPage && page <= m_toPage); }
 private:
-    QPrintDialog::PrintRange m_rangeType;
+    RangeType m_rangeType;
     int m_fromPage;
     int m_toPage;
 };
@@ -136,33 +138,33 @@ class DataSourceManager;
 class ReportEnginePrivate;
 class PageDesignIntf;
 class PageItemDesignIntf;
-class ReportDesignWidget;
-class PreviewReportWidget;
 class PreparedPages;
 
 typedef QList< QSharedPointer<PageItemDesignIntf> > ReportPages;
 
 class LIMEREPORT_EXPORT ReportEngine : public QObject{
     Q_OBJECT
-    friend class ReportDesignWidget;
-    friend class PreviewReportWidget;
-    friend class TranslationEditor;
+    friend class QuickReportPreview;
+    friend class QuickReportDesigner;
 public:
     static void setSettings(QSettings *value){m_settings=value;}
 public:
     explicit ReportEngine(QObject *parent = 0);
     ~ReportEngine();
-    bool    printReport(QPrinter *printer=0);
-    bool    printReport(QMap<QString, QPrinter*> printers, bool printToAllPrinters = false);
-    bool    printPages(ReportPages pages, QPrinter *printer);
+    // Renders the report and writes it as PDF (QPdfWriter, no printer subsystem).
+    bool    printToPDF(const QString& fileName, const PrintRange& range = PrintRange());
+    bool    printPagesToPDF(ReportPages pages, const QString& fileName, const PrintRange& range = PrintRange());
+    // "Printing" hands a rendered PDF to the platform's default viewer/printer.
+    bool    printReport();
     void    printToFile(const QString& fileName);
-    QGraphicsScene* createPreviewScene(QObject *parent = 0);
-    bool    printToPDF(const QString& fileName);
+    GraphicsScene* createPreviewScene(QObject *parent = 0);
     bool    exportReport(QString exporterName, const QString &fileName = "", const QMap<QString, QVariant>& params = QMap<QString, QVariant>());
+    // Renders every page of the report into images at the given resolution.
+    QList<QImage> renderToImages(qreal dpi = 96);
+    // Opens the Qt Quick preview window. Blocks until it is closed when modal.
     void    previewReport(PreviewHints hints = PreviewBarsUserSetting);
-    void    previewReport(QPrinter* printer, PreviewHints hints = PreviewBarsUserSetting);
+    // Opens the Qt Quick designer window.
     void    designReport();
-    ReportDesignWindowInterface* getDesignerWindow();
     void    setShowProgressDialog(bool value);
     bool    isShowProgressDialog();
     IDataSourceManager* dataManager();
@@ -179,7 +181,6 @@ public:
     void setCurrentReportsDir(const QString& dirName);
     void setReportName(const QString& name);
     QString reportName();
-    PreviewReportWidget *createPreviewWidget(QWidget *parent = 0);
     void setPreviewWindowTitle(const QString& title);
     void setPreviewWindowIcon(const QIcon& icon);
     void setPreviewPageBackgroundColor(QColor color);
@@ -208,6 +209,8 @@ public:
     bool showPreparedPages(PreviewHints hints = PreviewBarsUserSetting);
     bool prepareReportPages();
     bool printPreparedPages();
+    bool showPreviewModal() const;
+    void setShowPreviewModal(bool value);
     bool showDesignerModal() const;
     void setShowDesignerModal(bool showDesignerModal);
 
@@ -233,7 +236,7 @@ signals:
     void currentDefaultDesignerLanguageChanged(QLocale::Language);
     QLocale::Language getCurrentDefaultDesignerLanguage();
 
-    void  externalPaint(const QString& objectName, QPainter* painter, const QStyleOptionGraphicsItem*);
+    void  externalPaint(const QString& objectName, QPainter* painter, const StyleOptionGraphicsItem*);
 
 public slots:
     void cancelRender();
@@ -245,6 +248,7 @@ private:
     Q_DECLARE_PRIVATE(ReportEngine)
     static QSettings* m_settings;
     bool m_showDesignerModal;
+    bool m_showPreviewModal;
 };
 
 } // namespace LimeReport

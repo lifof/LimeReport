@@ -34,7 +34,8 @@
 #include "lritemscontainerdesignitf.h"
 #include <QList>
 #include <QColor>
-#include <QPrinter>
+#include <QPageSize>
+#include <QPageLayout>
 
 namespace LimeReport{
 
@@ -66,24 +67,6 @@ class PageItemDesignIntf : public ItemsContainerDesignInft
     Q_PROPERTY(bool mixWithPriorPage READ mixWithPriorPage WRITE setMixWithPriorPage)
     friend class ReportRender;
 public:
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-    enum Orientation { Portrait = QPrinter::Portrait, Landscape = QPrinter::Landscape };
-
-    enum PrintBehavior {Scale, Split};
-
-    enum PageSize {
-        A4 = QPrinter::A4, B5 = QPrinter::B5, Letter = QPrinter::Letter,
-        Legal = QPrinter::Legal, Executive = QPrinter::Executive,
-        A0 = QPrinter::A0, A1 = QPrinter::A1, A2 = QPrinter::A2, A3 = QPrinter::A3,
-        A5 = QPrinter::A5, A6 = QPrinter::A6, A7 = QPrinter::A7, A8 = QPrinter::A8,
-        A9 = QPrinter::A9, B0 = QPrinter::B0, B1 = QPrinter::B1, B10 = QPrinter::B10,
-        B2 = QPrinter::B2, B3 = QPrinter::B3, B4 = QPrinter::B4, B6 = QPrinter::B6,
-        B7 = QPrinter::B7, B8 = QPrinter::B8, B9 = QPrinter::B9, C5E = QPrinter::C5E,
-        Comm10E = QPrinter::Comm10E, DLE = QPrinter::DLE, Folio = QPrinter::Folio,
-        Ledger = QPrinter::Ledger, Tabloid = QPrinter::Tabloid, Custom = QPrinter::Custom,
-        NPageSize = Custom
-    };
-#else
     enum Orientation { Portrait = QPageLayout::Portrait, Landscape = QPageLayout::Landscape };
 
     enum PrintBehavior {Scale, Split};
@@ -100,26 +83,19 @@ public:
         Ledger = QPageSize::Ledger, Tabloid = QPageSize::Tabloid, Custom = QPageSize::Custom,
         NPageSize = Custom
     };
-#endif
 
-#if QT_VERSION >= 0x050500
     Q_ENUM(Orientation)
     Q_ENUM(PrintBehavior)
     Q_ENUM(PageSize)
-#else
-    Q_ENUMS(Orientation)
-    Q_ENUMS(PrintBehavior)
-    Q_ENUMS(PageSize)
-#endif
     typedef QList<BandDesignIntf*> BandsList;
     typedef QList<BandDesignIntf*>::const_iterator BandsIterator;
     typedef QSharedPointer<PageItemDesignIntf> Ptr;
     static PageItemDesignIntf::Ptr create(QObject* owner);
-    explicit PageItemDesignIntf(QObject *owner = 0, QGraphicsItem* parent=0);
-    explicit PageItemDesignIntf(const PageSize pageSize, const QRectF& rect,QObject *owner = 0, QGraphicsItem* parent=0);
+    explicit PageItemDesignIntf(QObject *owner = 0, GraphicsItem* parent=0);
+    explicit PageItemDesignIntf(const PageSize pageSize, const QRectF& rect,QObject *owner = 0, GraphicsItem* parent=0);
     ~PageItemDesignIntf();
-    virtual void paint(QPainter *ppainter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0);
+    virtual void paint(QPainter *ppainter, const StyleOptionGraphicsItem *option);
+    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0);
     virtual void geometryChangedEvent(QRectF newRect, QRectF);
     virtual QColor selectionColor() const;
     virtual QColor pageBorderColor() const;
@@ -228,7 +204,7 @@ protected:
     void    initPageSize(const PageSize &size);
     void    initPageSize(const QSizeF &size);
     QColor  selectionMarkerColor(){return Qt::transparent;}
-    void    preparePopUpMenu(QMenu &menu);
+    void    preparePopUpMenu(PopupMenu &menu);
     void    processPopUpAction(QAction *action);
 private:
     void paintGrid(QPainter *ppainter, QRectF rect);

@@ -29,7 +29,6 @@
  ****************************************************************************/
 #include "lrshapeitem.h"
 #include "lrdesignelementsfactory.h"
-#include <QStyleOptionGraphicsItem>
 #include <QPainter>
 
 namespace{
@@ -47,7 +46,7 @@ bool VARIABLE_IS_NOT_USED registred = LimeReport::DesignElementsFactory::instanc
 
 namespace LimeReport{
 
-ShapeItem::ShapeItem(QObject *owner, QGraphicsItem *parent)
+ShapeItem::ShapeItem(QObject *owner, GraphicsItem *parent)
     :ItemDesignIntf(xmlTag,owner,parent),
       m_shape(HorizontalLine),
       m_shapeColor(Qt::black),
@@ -74,7 +73,7 @@ void ShapeItem::setPenStyle(const Qt::PenStyle &value)
     }
 }
 
-void ShapeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ShapeItem::paint(QPainter *painter, const StyleOptionGraphicsItem *option)
 {
 
     painter->save();
@@ -115,7 +114,7 @@ void ShapeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         break;
     }
     painter->restore();
-    ItemDesignIntf::paint(painter,option,widget);
+    ItemDesignIntf::paint(painter,option);
 
 }
 
@@ -170,7 +169,7 @@ void ShapeItem::setLineWidth(qreal value)
     }
 }
 
-BaseDesignIntf *ShapeItem::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *ShapeItem::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     return new ShapeItem(owner,parent);
 }

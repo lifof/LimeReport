@@ -41,14 +41,14 @@ class PageHeader : public LimeReport::BandDesignIntf
     Q_PROPERTY(bool printOnFirstPage READ printOnFirstPage WRITE setPrintOnFirstPage)
     Q_PROPERTY(bool printOnLastPage READ printOnLastPage WRITE setPrintOnLastPage)
 public:
-    PageHeader(QObject* owner = 0, QGraphicsItem* parent=0);
+    PageHeader(QObject* owner = 0, GraphicsItem* parent=0);
     bool printOnFirstPage() const;
     void setPrintOnFirstPage(bool printOnFirstPage);
     bool printOnLastPage() const;
     void setPrintOnLastPage(bool printOnLastPage);
     bool isHeader() const{return true;}
 protected:
-    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, QGraphicsItem* parent=0);
+    virtual BaseDesignIntf* createSameTypeItem(QObject* owner=0, GraphicsItem* parent=0);
     QColor bandColor() const;
 private:
     bool m_printOnFirstPage;

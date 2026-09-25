@@ -35,14 +35,11 @@
 #include "lrglobal.h"
 
 #include <QDebug>
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 1))
-#include <QRegExp>
-#endif
 #include <QVariant>
 
 namespace LimeReport{
 
-ItemDesignIntf::ItemDesignIntf(const QString &xmlTypeName, QObject* owner, QGraphicsItem* parent) :
+ItemDesignIntf::ItemDesignIntf(const QString &xmlTypeName, QObject* owner, GraphicsItem* parent) :
     BaseDesignIntf(xmlTypeName,owner,parent), m_itemLocation(Band), m_stretchToMaxHeight(false){
     initFlags();
 }
@@ -55,7 +52,7 @@ void ItemDesignIntf::setItemLocation(LocationType location)
         m_itemLocation=location;
         if(!isLoading()){
             if (location==Band){
-                QGraphicsItem *parentBand=bandByPos();
+                GraphicsItem *parentBand=bandByPos();
                 if (parentBand){
                     QPointF parentPos = parentBand->mapFromItem(parentItem(),x(),y());
                     setParentItem(parentBand);
@@ -91,7 +88,7 @@ void ItemDesignIntf::setStretchToMaxHeight(bool value)
     }
 }
 
-BaseDesignIntf *ItemDesignIntf::cloneEmpty(int height, QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *ItemDesignIntf::cloneEmpty(int height, QObject *owner, GraphicsItem *parent)
 {
     BaseDesignIntf* spacer = new Spacer(owner,parent);
     spacer->initFromItem(this);
@@ -99,9 +96,9 @@ BaseDesignIntf *ItemDesignIntf::cloneEmpty(int height, QObject *owner, QGraphics
     return spacer;
 }
 
-QGraphicsItem * ItemDesignIntf::bandByPos()
+GraphicsItem * ItemDesignIntf::bandByPos()
 {
-    foreach(QGraphicsItem *item, scene()->items()){
+    foreach(GraphicsItem *item, scene()->items()){
         if (dynamic_cast<BandDesignIntf*>(item) && item->collidesWithItem(this)){
             return item;
         }
@@ -113,13 +110,13 @@ void ItemDesignIntf::initFlags()
 {
     BaseDesignIntf::initFlags();
     if ((itemMode()&DesignMode) || (itemMode()&EditMode)){
-        setFlag(QGraphicsItem::ItemIsMovable);
+        setFlag(GraphicsItem::ItemIsMovable);
     } else {
-        setFlag(QGraphicsItem::ItemIsMovable,false);
+        setFlag(GraphicsItem::ItemIsMovable,false);
     }
 }
 
-Spacer::Spacer(QObject *owner, QGraphicsItem *parent)
+Spacer::Spacer(QObject *owner, GraphicsItem *parent)
     :ItemDesignIntf("Spacer",owner,parent){}
 
 QMap<QString, QString> ContentItemDesignIntf::getStringForTranslation(){

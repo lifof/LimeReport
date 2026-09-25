@@ -29,23 +29,15 @@
  ****************************************************************************/
 #ifndef LRSCRIPTENGINEMANAGER_H
 #define LRSCRIPTENGINEMANAGER_H
-#ifdef USE_QTSCRIPTENGINE
-#include <QtScript/QScriptEngine>
-#include <QScriptable>
-#endif
 #include <QVector>
 #include <QIcon>
 #include <QAbstractItemModel>
 #include <QDebug>
 #include <QtGlobal>
 #include <QFont>
-#include <QComboBox>
 
 //#include <QJSEngine>
 
-#ifdef HAVE_UI_LOADER
-#include <QDialog>
-#endif
 
 #include "base/lrsingleton.h"
 #include "lrglobal.h"
@@ -174,24 +166,9 @@ class ScriptEngineContext : public QObject, public ICollectionContainer
     Q_PROPERTY(ACollectionProperty dialogs READ fakeCollectionReader)
     Q_PROPERTY(QString initScript READ initScript WRITE setInitScript)
 public:
-#ifdef HAVE_UI_LOADER
-    typedef QSharedPointer<QDialog> DialogPtr;
-#endif
     explicit ScriptEngineContext(QObject* parent=0):
         QObject(parent), m_currentBand(0), m_currentPage(0),
         m_tableOfContents(new TableOfContents(this)), m_hasChanges(false) {}
-#ifdef HAVE_UI_LOADER
-    void    addDialog(const QString& name, const QByteArray& description);
-    bool    changeDialog(const QString& name, const QByteArray &description);
-    bool    changeDialogName(const QString& oldName, const QString& newName);
-    bool    previewDialog(const QString& dialogName);
-    bool    containsDialog(const QString& dialogName);
-    const   QVector<DialogDescriber::Ptr>& dialogDescribers(){return m_dialogs;}
-    void    deleteDialog(const QString& dialogName);
-    QDialog *getDialog(const QString &dialogName);
-    QString getNewDialogName();
-    void    initDialogs();
-#endif
     void    baseDesignIntfToScript(const QString& pageName, BaseDesignIntf *item);
     void    qobjectToScript(const QString &name, QObject* item);
     void    clear();
@@ -209,27 +186,12 @@ public:
     bool hasChanges(){ return m_hasChanges;}
     ReportPages* reportPages() const;
     void setReportPages(ReportPages* value);
-#ifdef HAVE_UI_LOADER        
-signals:
-    void    dialogNameChanged(QString dialogName);
-    void    dialogDeleted(QString dialogName);
-    void    dialogAdded(QString dialogName);
-#endif
 protected:
     QObject* createElement(const QString& collectionName,const QString& elementType);
     int      elementsCount(const QString& collectionName);
     QObject* elementAt(const QString& collectionName,int index);
     void     collectionLoadFinished(const QString &collectionName);
-#ifdef HAVE_UI_LOADER
-    QDialog *createDialog(DialogDescriber *cont);
-    QDialog *findDialog(const QString &dialogName);
-    DialogDescriber* findDialogContainer(const QString& dialogName);
-#endif
 private:
-#ifdef HAVE_UI_LOADER
-    QVector<DialogDescriber::Ptr> m_dialogs;
-    QList<DialogPtr> m_createdDialogs;
-#endif
     QString m_lastError;
     QString m_initScript;
     BandDesignIntf* m_currentBand;
@@ -278,36 +240,11 @@ private:
     QString  m_scriptWrapper;
 };
 
-#ifdef USE_QTSCRIPTENGINE
-class ComboBoxPrototype : public QObject, public QScriptable{
-    Q_OBJECT
-public:
-    ComboBoxPrototype(QObject* parent = 0):QObject(parent){}
-public slots:
-    void addItem( const QString& text);
-    void addItems(const QStringList& texts);
-};
-#endif
 
 class IWrapperCreator{
 public:
     virtual QObject* createWrapper(QObject* item) = 0;
     virtual ~IWrapperCreator(){}
-};
-
-class ComboBoxWrapper : public QObject{
-    Q_OBJECT
-public:
-    ComboBoxWrapper(QComboBox* comboBox, QObject* parent = 0) : QObject(parent), m_comboBox(comboBox){}
-    Q_INVOKABLE void addItems(const QStringList& texts){ m_comboBox->addItems(texts);}
-    Q_INVOKABLE void addItem(const QString& text){ m_comboBox->addItem(text);}
-private:
-    QComboBox* m_comboBox;
-};
-
-class ComboBoxWrapperCreator: public IWrapperCreator{
-private:
-    QObject* createWrapper(QObject* item);
 };
 
 class TableBuilder: public QObject{
@@ -347,8 +284,6 @@ class ScriptFunctionsManager : public QObject{
     Q_OBJECT
 public:
     explicit ScriptFunctionsManager(QObject* parent = 0):QObject(parent){
-        m_wrappersFactory.insert("QComboBox",new  ComboBoxWrapperCreator());
-
     }
     ~ScriptFunctionsManager(){
         foreach(IWrapperCreator* wrapper, m_wrappersFactory.values()){ delete wrapper;} m_wrappersFactory.clear();
@@ -377,17 +312,7 @@ public:
     Q_INVOKABLE void     addTableOfContentsItem(const QString& uniqKey, const QString& content, int indent = 0);
     Q_INVOKABLE void     clearTableOfContents();
     Q_INVOKABLE QFont    font(const QString& family, int pointSize = -1, bool bold = false, bool italic = false, bool underLine = false);
-#ifdef USE_QJSENGINE
-    Q_INVOKABLE void addItemsToComboBox(QJSValue object, const QStringList& values);
-    Q_INVOKABLE void addItemToComboBox(QJSValue object, const QString& value);
-    Q_INVOKABLE QJSValue createComboBoxWrapper(QJSValue comboBox);
     Q_INVOKABLE QJSValue createWrapper(QJSValue item);
-#else
-    Q_INVOKABLE void addItemsToComboBox(QScriptValue object, const QStringList& values);
-    Q_INVOKABLE void addItemToComboBox(QScriptValue object, const QString& value);
-    Q_INVOKABLE QScriptValue createComboBoxWrapper(QScriptValue comboBox);
-    Q_INVOKABLE QScriptValue createWrapper(QScriptValue item);
-#endif
     Q_INVOKABLE QFont font(QVariantMap params);
     Q_INVOKABLE int getPageFreeSpace(QObject *page);
     ScriptEngineManager *scriptEngineManager() const;
@@ -451,9 +376,6 @@ public:
     void deleteFunction(const QString& functionsName);
 
     bool addFunction(const JSFunctionDesc& functionsDescriber);
-#ifdef USE_QTSCRIPTENGINE
-    bool addFunction(const QString &name, QScriptEngine::FunctionSignature function, const QString &category, const QString &description);
-#endif
     bool addFunction(const QString &name, const QString& script,
                              const QString &category="", const QString &description="");
     const QString& lastError() const {return m_lastError;}
@@ -513,59 +435,7 @@ private:
 };
 
 
-#ifdef USE_QTSCRIPTENGINE
-class QFontPrototype : public QObject, public QScriptable {
-    Q_OBJECT
-    Q_PROPERTY(QString family READ family)
-    Q_PROPERTY(int size READ size)
-    Q_PROPERTY(bool bold READ bold)
-    Q_PROPERTY(bool italic READ italic)
-    Q_PROPERTY(bool underline READ underline)
-public:
-    QFontPrototype(QObject * parent = NULL) : QObject(parent) , QScriptable() {
-        this->setObjectName("QFontPrototype");
-    }
-    QString family() const {
-        QFont font(qScriptValueToValue<QFont>(this->thisObject()));
-        return font.family();
-    }
-    int size(){
-        QFont font = qScriptValueToValue<QFont>(thisObject());
-        return font.pointSize();
-    }
-    bool bold(){
-        QFont font = qScriptValueToValue<QFont>(thisObject());
-        return font.bold();
-    }
-    bool italic(){
-        QFont font = qScriptValueToValue<QFont>(thisObject());
-        return font.italic();
-    }
-    bool underline(){
-        QFont font = qScriptValueToValue<QFont>(thisObject());
-        return font.underline();
-    }
-    static QScriptValue constructorQFont(QScriptContext * context, QScriptEngine * engine) {
-        QFont font;
-        switch (context->argumentCount()) {
-        case 5: font.setUnderline(qScriptValueToValue<bool>(context->argument(4)));
-        case 4: font.setBold(qScriptValueToValue<bool>(context->argument(3)));
-        case 3: font.setItalic(qScriptValueToValue<bool>(context->argument(2)));
-        case 2: font.setPointSize(qScriptValueToValue<int>(context->argument(1)));
-        case 1: font.setFamily(qScriptValueToValue<QString>(context->argument(0)));
-        case 0: break;
-        default:
-            break;
-        }
-        return qScriptValueFromValue<QFont>(engine, font);
-    }
-};
-#endif
 
 }
-#ifdef USE_QTSCRIPTENGINE
-Q_DECLARE_METATYPE(LimeReport::ComboBoxPrototype*)
-Q_DECLARE_METATYPE(QComboBox*)
-#endif
 
 #endif // LRSCRIPTENGINEMANAGER_H

@@ -51,23 +51,23 @@ public:
 
 class BandDesignIntf;
 
-class BandMarker : public QGraphicsItem{
+class BandMarker : public GraphicsItem{
 public:
-    explicit BandMarker(BandDesignIntf* band, QGraphicsItem *parent=0);
+    explicit BandMarker(BandDesignIntf* band, GraphicsItem *parent=0);
     QRectF boundingRect() const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
+    void paint(QPainter *painter, const StyleOptionGraphicsItem *);
     void setHeight(qreal height);
     void setWidth(qreal width);
     void setColor(QColor color);
     qreal width(){return m_rect.width();}
     qreal height(){return m_rect.height();}
 protected:
-    void  mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void  contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+    void  mousePressEvent(GraphicsSceneMouseEvent *event);
+    void  contextMenuEvent(GraphicsSceneContextMenuEvent *event);
 
-    void  hoverMoveEvent(QGraphicsSceneHoverEvent* event);
-    void  mouseMoveEvent(QGraphicsSceneMouseEvent* event);
-    void  mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    void  hoverMoveEvent(GraphicsSceneHoverEvent* event);
+    void  mouseMoveEvent(GraphicsSceneMouseEvent* event);
+    void  mouseReleaseEvent(GraphicsSceneMouseEvent *event);
 private:
     QRectF m_rect;
     QColor m_color;
@@ -75,13 +75,13 @@ private:
     QPointF m_oldBandPos;
 };
 
-class BandNameLabel : public QGraphicsItem{
+class BandNameLabel : public GraphicsItem{
 public:
-    explicit BandNameLabel(BandDesignIntf* band, QGraphicsItem* parent=0);
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    explicit BandNameLabel(BandDesignIntf* band, GraphicsItem* parent=0);
+    void paint(QPainter *painter, const StyleOptionGraphicsItem *option);
     QRectF boundingRect() const;
     void updateLabel(const QString &bandName);
-    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
+    void hoverEnterEvent(GraphicsSceneHoverEvent *event);
 private:
     QRectF m_rect;
     QColor m_color;
@@ -138,16 +138,12 @@ public:
     enum BandColumnsLayoutType{
         Horizontal, Vertical, VerticalUniform
     };
-#if QT_VERSION >= 0x050500
     Q_ENUM(BandColumnsLayoutType)
-#else
-    Q_ENUMS(BandColumnsLayoutType)
-#endif
 
-    BandDesignIntf(BandsType bandType, const QString& xmlTypeName, QObject* owner = 0, QGraphicsItem* parent=0);
+    BandDesignIntf(BandsType bandType, const QString& xmlTypeName, QObject* owner = 0, GraphicsItem* parent=0);
     ~BandDesignIntf();
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    void paint(QPainter *painter, const StyleOptionGraphicsItem *option);
     QRectF boundingRect() const;
     void translateBandsName();
     virtual BandsType bandType() const;
@@ -210,8 +206,8 @@ public:
     void setTryToKeepTogether(bool value);
     bool tryToKeepTogether();
 
-    BaseDesignIntf* cloneUpperPart(int height, QObject* owner=0, QGraphicsItem* parent=0);
-    BaseDesignIntf* cloneBottomPart(int height, QObject *owner=0, QGraphicsItem *parent=0);
+    BaseDesignIntf* cloneUpperPart(int height, QObject* owner=0, GraphicsItem* parent=0);
+    BaseDesignIntf* cloneBottomPart(int height, QObject *owner=0, GraphicsItem *parent=0);
     void parentObjectLoadFinished();
     void objectLoadFinished();
     void emitBandRendered(BandDesignIntf *band);
@@ -295,7 +291,7 @@ protected:
     void setColumnsCount(int value);
     void setColumnsFillDirection(BandColumnsLayoutType value);
     void moveItemsDown(qreal startPos, qreal offset);
-    void preparePopUpMenu(QMenu &menu);
+    void preparePopUpMenu(PopupMenu &menu);
     void processPopUpAction(QAction *action);
     QString translateBandName(const BaseDesignIntf *item) const;
 
@@ -342,7 +338,7 @@ class DataBandDesignIntf : public BandDesignIntf{
     Q_OBJECT
     Q_PROPERTY(QString datasource READ datasourceName WRITE setDataSourceName)
 public:
-    DataBandDesignIntf(BandsType bandType, QString xmlTypeName, QObject* owner = 0, QGraphicsItem* parent=0);
+    DataBandDesignIntf(BandsType bandType, QString xmlTypeName, QObject* owner = 0, GraphicsItem* parent=0);
 };
 
 bool bandIndexLessThen(const BandDesignIntf* b1, const BandDesignIntf* b2);

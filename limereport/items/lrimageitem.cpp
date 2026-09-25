@@ -32,7 +32,6 @@
 #include "lrglobal.h"
 #include "lrdatasourcemanager.h"
 #include "lrpagedesignintf.h"
-#include "lrimageitemeditor.h"
 
 namespace{
 
@@ -48,12 +47,12 @@ bool VARIABLE_IS_NOT_USED registred = LimeReport::DesignElementsFactory::instanc
 
 namespace LimeReport{
 
-ImageItem::ImageItem(QObject* owner,QGraphicsItem* parent)
+ImageItem::ImageItem(QObject* owner,GraphicsItem* parent)
     :ItemDesignIntf(xmlTag,owner,parent), m_useExternalPainter(false), m_externalPainter(0),
      m_autoSize(false), m_scale(true),
      m_keepAspectRatio(true), m_center(true), m_format(Binary){}
 
-BaseDesignIntf *ImageItem::createSameTypeItem(QObject *owner, QGraphicsItem *parent)
+BaseDesignIntf *ImageItem::createSameTypeItem(QObject *owner, GraphicsItem *parent)
 {
     ImageItem* result = new ImageItem(owner,parent);
     result->setExternalPainter(m_externalPainter);
@@ -82,7 +81,7 @@ void ImageItem::loadPictureFromVariant(QVariant& data){
     }
 }
 
-void ImageItem::preparePopUpMenu(QMenu &menu)
+void ImageItem::preparePopUpMenu(PopupMenu &menu)
 {
     QAction* editAction = menu.addAction(QIcon(":/report/images/edit_pecil2.png"),tr("Edit"));
     menu.insertAction(menu.actions().at(0),editAction);
@@ -132,13 +131,6 @@ void ImageItem::setUseExternalPainter(bool value)
         notify("useExternalPainter",!value, value);
         update();
     }
-}
-
-QWidget *ImageItem::defaultEditor()
-{
-    ImageItemEditor* editor = new ImageItemEditor(this);
-    editor->setAttribute(Qt::WA_DeleteOnClose);
-    return editor;
 }
 
 QByteArray ImageItem::imageAsByteArray() const
@@ -315,7 +307,7 @@ void ImageItem::setDatasource(const QString &datasource)
 }
 
 
-void ImageItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ImageItem::paint(QPainter *painter, const StyleOptionGraphicsItem *option)
 {
     painter->save();
     if (isSelected()) painter->setOpacity(Const::SELECTION_OPACITY);
@@ -376,7 +368,7 @@ void ImageItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
             painter->drawImage(point,img);
     }
 
-    ItemDesignIntf::paint(painter,option,widget);
+    ItemDesignIntf::paint(painter,option);
     painter->restore();
 }
 
